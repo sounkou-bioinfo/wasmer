@@ -1,12 +1,85 @@
+use wasmer::{Function, Store, Instance, FunctionEnv, FunctionEnvMut, Module, Value, imports, wat2wasm};
+use once_cell::unsync::Lazy;
+use std::cell::RefCell;
 use extendr_api::prelude::*;
 use extendr_api::wrapper::ExternalPtr;
-use wasmer::{Instance, Module, Store, Value, Function, imports, wat2wasm};
 use std::collections::HashMap;
+use wasmer::AsStoreRef;
+thread_local! {
+    static R_FUNCTION_REGISTRY: Lazy<RefCell<HashMap<String, Robj>>> =
+        Lazy::new(|| RefCell::new(HashMap::new()));
+}
+
+fn read_string_from_memory(instance: &Instance, store: &wasmer::StoreRef, ptr: i32, len: i32) -> Option<String> {
+    let memory = instance.exports.get_memory("memory").ok()?;
+    let view = memory.view(store);
+    let bytes: Vec<u8> = (ptr..ptr+len)
+        .map(|i| unsafe { *view.data_ptr().add(i as usize) })
+        .collect();
+    String::from_utf8(bytes).ok()
+}
+
+fn read_i32_args_from_memory(instance: &Instance, store: &wasmer::StoreRef, ptr: i32, argc: i32) -> Vec<i32> {
+    let memory = instance.exports.get_memory("memory").unwrap();
+    let view = memory.view(store);
+    (0..argc)
+        .map(|i| {
+            let offset = ptr + i * 4;
+            let bytes = [
+                unsafe { *view.data_ptr().add(offset as usize) },
+                unsafe { *view.data_ptr().add((offset+1) as usize) },
+                unsafe { *view.data_ptr().add((offset+2) as usize) },
+                unsafe { *view.data_ptr().add((offset+3) as usize) },
+            ];
+            i32::from_le_bytes(bytes)
+        })
+        .collect()
+}
+
+#[derive(Clone)]
+pub struct WasmerEnv {
+    pub instance: Instance,
+}
+
+pub fn register_r_function(name: &str, fun: Robj) {
+    R_FUNCTION_REGISTRY.with(|reg| {
+        reg.borrow_mut().insert(name.to_string(), fun);
+    });
+}
+
+pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut Store) -> Function {
+    Function::new_typed_with_env(store, env, |mut env: FunctionEnvMut<WasmerEnv>, name_ptr: i32, name_len: i32, argc: i32, args_ptr: i32| -> i32 {
+        let (data, store_mut) = env.data_and_store_mut();
+        let instance = &data.instance;
+        let store_ref = store_mut.as_store_ref();
+        // Read function name
+        let func_name = match read_string_from_memory(instance, &store_ref, name_ptr, name_len) {
+            Some(s) => s,
+            None => return 0,
+        };
+        // Read arguments
+        let args = read_i32_args_from_memory(instance, &store_ref, args_ptr, argc);
+        // Lookup and call R function
+        let result = R_FUNCTION_REGISTRY.with(|reg| {
+            reg.borrow().get(&func_name).cloned()
+        }).and_then(|rfun| {
+            let r_args = args.into_iter().map(|x| r!(x)).collect::<Vec<Robj>>();
+            rfun.call(pairlist!(r_args)).ok()
+        });
+        if let Some(r) = result {
+            if let Some(val) = r.as_integer() {
+                return val;
+            }
+        }
+        0 // fallback
+    })
+}
+
+
 
 mod memory;
 mod host_functions;
 mod type_converter;
-mod api;
 
 use memory::WasmerMemoryManager;
 use host_functions::WasmerHostFunctions;
@@ -37,6 +110,7 @@ pub struct WasmerRuntime {
     modules: HashMap<String, Module>,
     instances: HashMap<String, Instance>,
     r_function_registry: HashMap<String, Robj>,
+    env: Option<FunctionEnv<WasmerEnv>>,
     #[allow(dead_code)]
     memory_manager: WasmerMemoryManager,
 }
@@ -48,6 +122,7 @@ impl WasmerRuntime {
             modules: HashMap::new(),
             instances: HashMap::new(),
             r_function_registry: HashMap::new(),
+            env: None,
             memory_manager: WasmerMemoryManager::new(),
         }
     }
@@ -72,15 +147,25 @@ fn wasmer_compile_wat(runtime: &mut WasmerRuntime, wat_code: String, module_name
 
 fn wasmer_instantiate(runtime: &mut WasmerRuntime, module_name: String, instance_name: String) -> String {
     if let Some(module) = runtime.modules.get(&module_name) {
-        let import_object = imports! {
-            "env" => {
-                "r_host_call" => api::create_generic_r_host_function(&mut runtime.store),
-            }
-        };
-        match Instance::new(&mut runtime.store, module, &import_object) {
+        match Instance::new(&mut runtime.store, module, &imports! {}) {
             Ok(instance) => {
-                runtime.instances.insert(instance_name.clone(), instance);
-                format!("Instance '{}' created successfully", instance_name)
+                // Now create the env with the real instance
+                let env = FunctionEnv::new(&mut runtime.store, WasmerEnv { instance: instance.clone() });
+                // Create the import object with the host function
+                let import_object = imports! {
+                    "env" => {
+                        "r_host_call" => create_generic_r_host_function(&env, &mut runtime.store),
+                    }
+                };
+                // Re-instantiate with the correct import object
+                match Instance::new(&mut runtime.store, module, &import_object) {
+                    Ok(final_instance) => {
+                        runtime.instances.insert(instance_name.clone(), final_instance.clone());
+                        runtime.env = Some(env);
+                        format!("Instance '{}' created successfully", instance_name)
+                    }
+                    Err(e) => format!("Error creating instance: {}", e),
+                }
             }
             Err(e) => format!("Error creating instance: {}", e),
         }
@@ -112,7 +197,7 @@ fn wasmer_call_function(runtime: &mut WasmerRuntime, instance_name: String, func
                 Ok(results) => {
                     let result_list = List::from_names_and_values(
                         ["success", "values"],
-                        [r!(true), convert_wasm_values_to_r(results)],
+                        [r!(true), convert_wasm_values_to_r(Box::<[Value]>::from(results))],
                     ).unwrap();
                     result_list
                 }

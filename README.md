@@ -23,7 +23,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5de32b781ea0>
+#> <pointer: 0x57add41b1810>
 ```
 
 ### Math Operations compiled from Rust
@@ -234,8 +234,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.09µs   2.31µs   402083.        0B     40.2
-#> 2 r           26.31µs  27.93µs    35465.    23.1KB     39.1
+#> 1 wasm         2.14µs   2.35µs   400232.        0B     40.0
+#> 2 r           26.29µs  28.01µs    35158.    23.1KB     38.7
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
@@ -263,6 +263,17 @@ stopifnot(grepl("created successfully", instance_bin_result, ignore.case = TRUE)
 result_bin <- wasmer_call_function_ext(runtime, "double_instance_bin", "double", list(21L))
 stopifnot(result_bin$success)
 stopifnot(result_bin$values[[1]] == 42)
+```
+
+## Register and Call an R Function from WASM
+
+``` r
+# Define an R function to double a value
+r_double <- function(x) x * 2
+
+# Register the R function in the runtime
+wasmer_register_r_function_ext(runtime, "r_double", r_double)
+#> [1] TRUE
 ```
 
 ## LLM Usage Disclosure
