@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 [![extendr](https://img.shields.io/badge/extendr-^0.8.1-276DC2)](https://extendr.github.io/extendr/extendr_api/)
 <!-- badges: end -->
 
-The `wasmer` package provides R bindings for the [Wasmer](https://wasmer.io/) WebAssembly runtime, allowing you to compile, instantiate, and execute WebAssembly modules directly from R. This opens up possibilities for high-performance computing, cross-language interoperability, and running untrusted code in a sandboxed environment.
+The `wasmer` package provides R bindings for the [Wasmer](https://wasmer.io/) WebAssembly runtime, allowing you to compile, instantiate, and execute WebAssembly modules directly from R. This opens up possibilities for high-performance computing, cross-language interoperability, and running untrusted code in a sandboxed environment. This is a wip.
 
 ## Installation
 This package uses {rextenr}, so you will need a rust installation

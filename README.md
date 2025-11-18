@@ -11,7 +11,7 @@ The `wasmer` package provides R bindings for the
 compile, instantiate, and execute WebAssembly modules directly from R.
 This opens up possibilities for high-performance computing,
 cross-language interoperability, and running untrusted code in a
-sandboxed environment.
+sandboxed environment. This is a wip.
 
 ## Installation
 
@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x63984d5e8e70>
+#> <pointer: 0x5af6db0b3810>
 ```
 
 ### Math Operations compiled from Rust
@@ -242,8 +242,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.12µs   2.32µs   400768.        0B     40.1
-#> 2 r           26.32µs   27.7µs    35581.    23.1KB     39.2
+#> 1 wasm         2.07µs   2.28µs   409920.        0B     41.0
+#> 2 r           25.65µs  26.74µs    36774.    23.1KB     40.5
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
