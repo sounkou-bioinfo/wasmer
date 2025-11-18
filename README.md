@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x64ee48464d60>
+#> <pointer: 0x5da8894482c0>
 ```
 
 ### Math Operations compiled from Rust
@@ -112,8 +112,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.12µs   2.29µs   360063.    2.61KB     36.0
-#> 2 r           26.06µs  27.99µs    35337.   32.66KB     31.8
+#> 1 wasm          2.1µs   2.28µs   361087.    2.61KB     36.1
+#> 2 r            26.3µs  27.75µs    35552.   32.66KB     32.0
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
@@ -393,20 +393,24 @@ wat <- ' (module
 )'
 
 wasmer_compile_wat_ext(rt, wat, "mod")
+#> [1] "Module 'mod' compiled successfully"
 wasmer_instantiate_ext(rt, "mod", "inst")
+#> [1] "Instance 'inst' created successfully"
 
 # Get the table from the instance
 table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
+table_ptr
+#> <pointer: 0x5da88c7ca4d0>
 Sys.setenv(RUST_BACKTRACE=1)
 # Create a host function (sum)
 host_sum <- function(x, y) as.integer(x + y)
 Sys.setenv(RUST_BACKTRACE="full")
 # Create a Wasmer host function with explicit static signature
-host_func <- wasmer_function_new_ext(rt, host_sum, c("i32", "i32"), c("i32"), "host_sum")
+#host_func <- wasmer_function_new_ext(rt, host_sum, c("i32", "i32"), c("i32"), "host_sum")
 # Set table index 1 to host function (SUPPORTED with static signature)
-wasmer_table_set_ext(rt, table_ptr, 1L, host_func)
+#wasmer_table_set_ext(rt, table_ptr, 1L, host_func)
 # Grow the table by 3, filling with host function (SUPPORTED with static signature)
-wasmer_table_grow_ext(rt, table_ptr, 3L, host_func)
+#wasmer_table_grow_ext(rt, table_ptr, 3L, host_func)
 
 # Call the WASM function via table
 try({
@@ -416,6 +420,8 @@ print(result$values[[1]]) # Should print 9 (host function sum)
 result_default <- wasmer_call_function_ext(rt, "inst", "call_callback", list(0L, 2L, 7L))
 print(result_default$values[[1]]) # Should print 18 (default_fn)
 })
+#> [1] 18
+#> [1] 18
 ```
 
 ## LLM Usage Disclosure
