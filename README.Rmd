@@ -83,7 +83,7 @@ exports
 stopifnot(exports$success == TRUE)
 stopifnot("fibonacci" %in% exports$exports)
 
-# Native R fibonacci implementation (recursive for fair comparison)
+# Native R fibonacci implementation 
 fib_r <- function(n) {
   if (n <= 1) return(n)
   return(fib_r(n-1) + fib_r(n-2))

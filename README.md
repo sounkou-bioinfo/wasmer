@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5fc204be6310>
+#> <pointer: 0x5aa54b2441d0>
 ```
 
 ### Math Operations compiled from Rust
@@ -89,7 +89,7 @@ exports
 stopifnot(exports$success == TRUE)
 stopifnot("fibonacci" %in% exports$exports)
 
-# Native R fibonacci implementation (recursive for fair comparison)
+# Native R fibonacci implementation 
 fib_r <- function(n) {
   if (n <= 1) return(n)
   return(fib_r(n-1) + fib_r(n-2))
@@ -109,8 +109,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.07µs   2.24µs   360752.    2.61KB     36.1
-#> 2 r           25.71µs  27.15µs    36146.   32.66KB     32.6
+#> 1 wasm         2.12µs   2.29µs   356412.    2.61KB     35.6
+#> 2 r           26.22µs  27.83µs    35072.   32.66KB     31.6
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 

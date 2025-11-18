@@ -794,8 +794,7 @@ pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
     }
 }
 
-use wasmer::{Function, Table, TableType, Type, Value};
-use extendr_api::wrapper::ExternalPtr;
+use wasmer::{Table, TableType, Type, Value};
 
 /// Create a new WASM Table
 /// @param ptr External pointer to WasmerRuntime
