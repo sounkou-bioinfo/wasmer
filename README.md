@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5d8c6056a130>
+#> <pointer: 0x5fc204be6310>
 ```
 
 ### Math Operations compiled from Rust
@@ -109,14 +109,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.11µs   2.29µs   357477.    2.61KB     35.8
-#> 2 r            26.3µs   27.9µs    35380.   32.66KB     31.9
-#> # A tibble: 2 × 6
-#>   expression      min   median `itr/sec` mem_alloc `gc/sec`
-#>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.14µs   2.34µs   403866.        0B     40.4
-#> 2 r           25.71µs  27.39µs    36005.    23.1KB     39.6
-# Verify results match
+#> 1 wasm         2.07µs   2.24µs   360752.    2.61KB     36.1
+#> 2 r           25.71µs  27.15µs    36146.   32.66KB     32.6
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
