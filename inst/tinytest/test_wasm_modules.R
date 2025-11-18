@@ -46,3 +46,11 @@ error_result2 <- wasmer_call_function_ext(runtime, "nonexistent_instance", "add"
 tinytest::expect_true(is.list(error_result2))
 tinytest::expect_false(error_result2$success)
 tinytest::expect_true(grepl("not found", error_result2$error, ignore.case = TRUE))
+
+# Test 7: WAT to WASM binary conversion and round-trip
+wat_code <- ' (module (func $double (export "double") (param $x i32) (result i32) local.get $x i32.const 2 i32.mul) ) '
+wasm_bin <- wasmer_wat_to_wasm_ext(wat_code)
+tinytest::expect_true(is.raw(wasm_bin))
+tinytest::expect_true(length(wasm_bin) > 0)
+# Optionally, compile the binary back to a module (if/when binary loader is available)
+# For now, just check the binary is non-empty and valid type

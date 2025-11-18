@@ -409,6 +409,29 @@ pub fn wasmer_compile_wat_ext(mut ptr: ExternalPtr<WasmerRuntime>, wat_code: Str
     wasmer_compile_wat(runtime, wat_code, module_name)
 }
 
+/// Compile a WASM binary and add it to the runtime.
+/// @param ptr External pointer to WasmerRuntime
+/// @param wasm_bytes WASM binary as R raw vector
+/// @param module_name Name to register the module under
+/// @return Status message
+/// @export
+#[extendr]
+pub fn wasmer_compile_wasm_ext(mut ptr: ExternalPtr<WasmerRuntime>, wasm_bytes: Robj, module_name: String) -> String {
+    let runtime = ptr.as_mut();
+    // Convert R raw vector to Vec<u8>
+    let bytes: Vec<u8> = match wasm_bytes.as_raw() {
+        Some(slice) => slice.as_slice().to_vec(),
+        None => return "Input is not a raw vector".to_string(),
+    };
+    match Module::new(&runtime.store, &bytes) {
+        Ok(module) => {
+            runtime.modules.insert(module_name.clone(), module);
+            format!("Module '{}' compiled from binary successfully", module_name)
+        }
+        Err(e) => format!("Error compiling module from binary: {}", e),
+    }
+}
+
 /// Instantiate a compiled module in the runtime.
 /// @param ptr External pointer to WasmerRuntime
 /// @param module_name Name of the module to instantiate
@@ -478,14 +501,28 @@ pub fn wasmer_hello_world_example_ext(mut runtime: ExternalPtr<WasmerRuntime>) -
     wasmer_hello_world_example(runtime.as_mut())
 }
 
+/// Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector
+/// @param wat_code WAT code as a string
+/// @return WASM binary as R raw vector, or error string if conversion fails
+/// @export
+#[extendr]
+pub fn wasmer_wat_to_wasm_ext(wat_code: String) -> Robj {
+    match wasmer::wat2wasm(wat_code.as_bytes()) {
+        Ok(wasm_bytes) => r!(wasm_bytes.into_owned()),
+        Err(e) => r!(format!("Error converting WAT to WASM: {}", e)),
+    }
+}
+
 extendr_module! {
     mod wasmer;
     fn wasmer_runtime_new;
     fn wasmer_compile_wat_ext;
+    fn wasmer_compile_wasm_ext;
     fn wasmer_instantiate_ext;
     fn wasmer_call_function_ext;
     fn wasmer_list_exports_ext;
     fn wasmer_register_r_function_ext;
     fn wasmer_math_example_ext;
     fn wasmer_hello_world_example_ext;
+    fn wasmer_wat_to_wasm_ext;
 }

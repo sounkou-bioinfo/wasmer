@@ -23,7 +23,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5a8d73fefe60>
+#> <pointer: 0x5bc4e18cf1e0>
 ```
 
 ### Math Operations
@@ -236,8 +236,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.05µs   2.22µs   416358.        0B     41.6
-#> 2 r           25.58µs  27.11µs    36221.    23.1KB     39.9
+#> 1 wasm         2.12µs   2.33µs   401170.        0B     40.1
+#> 2 r           25.77µs  26.89µs    36237.    23.1KB     39.9
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
@@ -251,6 +251,31 @@ tests:
 # The chunks above serve as integration tests
 # For additional unit tests, run:
 tinytest::test_all(".")
+```
+
+## WAT to WASM Binary Conversion and Binary Module Loading
+
+``` r
+# Convert WAT to WASM binary
+wat_code <- ' (module (func $double (export "double") (param $x i32) (result i32) local.get $x i32.const 2 i32.mul) ) '
+wasm_bin <- wasmer_wat_to_wasm_ext(wat_code)
+stopifnot(is.raw(wasm_bin))
+stopifnot(length(wasm_bin) > 0)
+
+# Compile the binary WASM into a module
+compile_bin_result <- wasmer_compile_wasm_ext(runtime, wasm_bin, "double_module_bin")
+stopifnot(is.character(compile_bin_result))
+stopifnot(grepl("compiled from binary successfully", compile_bin_result, ignore.case = TRUE))
+
+# Instantiate and call the exported function
+instance_bin_result <- wasmer_instantiate_ext(runtime, "double_module_bin", "double_instance_bin")
+stopifnot(is.character(instance_bin_result))
+stopifnot(grepl("created successfully", instance_bin_result, ignore.case = TRUE))
+
+# Call the function
+result_bin <- wasmer_call_function_ext(runtime, "double_instance_bin", "double", list(21L))
+stopifnot(result_bin$success)
+stopifnot(result_bin$values[[1]] == 42)
 ```
 
 ## LLM Usage Disclosure

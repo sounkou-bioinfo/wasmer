@@ -22,6 +22,14 @@ wasmer_runtime_new <- function() .Call(wrap__wasmer_runtime_new)
 #' @export
 wasmer_compile_wat_ext <- function(ptr, wat_code, module_name) .Call(wrap__wasmer_compile_wat_ext, ptr, wat_code, module_name)
 
+#' Compile a WASM binary and add it to the runtime.
+#' @param ptr External pointer to WasmerRuntime
+#' @param wasm_bytes WASM binary as R raw vector
+#' @param module_name Name to register the module under
+#' @return Status message
+#' @export
+wasmer_compile_wasm_ext <- function(ptr, wasm_bytes, module_name) .Call(wrap__wasmer_compile_wasm_ext, ptr, wasm_bytes, module_name)
+
 #' Instantiate a compiled module in the runtime.
 #' @param ptr External pointer to WasmerRuntime
 #' @param module_name Name of the module to instantiate
@@ -67,6 +75,12 @@ wasmer_math_example_ext <- function(runtime, a, b) .Call(wrap__wasmer_math_examp
 #' @return String result from WASM hello function
 #' @export
 wasmer_hello_world_example_ext <- function(runtime) .Call(wrap__wasmer_hello_world_example_ext, runtime)
+
+#' Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector
+#' @param wat_code WAT code as a string
+#' @return WASM binary as R raw vector, or error string if conversion fails
+#' @export
+wasmer_wat_to_wasm_ext <- function(wat_code) .Call(wrap__wasmer_wat_to_wasm_ext, wat_code)
 
 
 # nolint end

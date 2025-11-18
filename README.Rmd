@@ -211,5 +211,30 @@ tinytest::test_all(".")
 ```
 
 
+## WAT to WASM Binary Conversion and Binary Module Loading
+
+```{r wat-to-wasm-binary-roundtrip}
+# Convert WAT to WASM binary
+wat_code <- ' (module (func $double (export "double") (param $x i32) (result i32) local.get $x i32.const 2 i32.mul) ) '
+wasm_bin <- wasmer_wat_to_wasm_ext(wat_code)
+stopifnot(is.raw(wasm_bin))
+stopifnot(length(wasm_bin) > 0)
+
+# Compile the binary WASM into a module
+compile_bin_result <- wasmer_compile_wasm_ext(runtime, wasm_bin, "double_module_bin")
+stopifnot(is.character(compile_bin_result))
+stopifnot(grepl("compiled from binary successfully", compile_bin_result, ignore.case = TRUE))
+
+# Instantiate and call the exported function
+instance_bin_result <- wasmer_instantiate_ext(runtime, "double_module_bin", "double_instance_bin")
+stopifnot(is.character(instance_bin_result))
+stopifnot(grepl("created successfully", instance_bin_result, ignore.case = TRUE))
+
+# Call the function
+result_bin <- wasmer_call_function_ext(runtime, "double_instance_bin", "double", list(21L))
+stopifnot(result_bin$success)
+stopifnot(result_bin$values[[1]] == 42)
+```
+
 ## LLM Usage Disclosure
 Code and documentation in this project have been generated with the assistance of the github Copilot LLM tools. While we have reviewed and edited the generated content, we acknowledge that LLM tools were used in the creation process and accordingly (since these models are trained on GPL code and other commons + proprietary software license is fake anyway) the code is released under GPL-3. So if you use this code in any way, you must comply with the GPL-3 license.
