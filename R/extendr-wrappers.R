@@ -113,5 +113,52 @@ wasmer_host_function_example_ext <- function(ptr) .Call(wrap__wasmer_host_functi
 #' @export
 wasmer_list_function_signatures_ext <- function(ptr, instance_name) .Call(wrap__wasmer_list_function_signatures_ext, ptr, instance_name)
 
+#' Get the size of exported memory (in bytes and pages)
+#' @param ptr External pointer to WasmerRuntime
+#' @param instance_name Name of the instance
+#' @param memory_name Name of the exported memory (default "memory")
+#' @return List with size_bytes and size_pages
+#' @export
+wasmer_memory_size_ext <- function(ptr, instance_name, memory_name) .Call(wrap__wasmer_memory_size_ext, ptr, instance_name, memory_name)
+
+#' Read bytes from WASM memory
+#' @param ptr External pointer to WasmerRuntime
+#' @param instance_name Name of the instance
+#' @param memory_name Name of the exported memory
+#' @param offset Offset to start reading
+#' @param length Number of bytes to read
+#' @return Raw vector of bytes
+#' @export
+wasmer_memory_read_ext <- function(ptr, instance_name, memory_name, offset, length) .Call(wrap__wasmer_memory_read_ext, ptr, instance_name, memory_name, offset, length)
+
+#' Write bytes to WASM memory
+#' @param ptr External pointer to WasmerRuntime
+#' @param instance_name Name of the instance
+#' @param memory_name Name of the exported memory
+#' @param offset Offset to start writing
+#' @param bytes Raw vector of bytes to write
+#' @return TRUE if successful
+#' @export
+wasmer_memory_write_ext <- function(ptr, instance_name, memory_name, offset, bytes) .Call(wrap__wasmer_memory_write_ext, ptr, instance_name, memory_name, offset, bytes)
+
+#' Read UTF-8 string from WASM memory
+#' @param ptr External pointer to WasmerRuntime
+#' @param instance_name Name of the instance
+#' @param memory_name Name of the exported memory
+#' @param offset Offset to start reading
+#' @param length Number of bytes to read
+#' @return String
+#' @export
+wasmer_memory_read_string_ext <- function(ptr, instance_name, memory_name, offset, length) .Call(wrap__wasmer_memory_read_string_ext, ptr, instance_name, memory_name, offset, length)
+
+#' Grow WASM memory by a number of pages
+#' @param ptr External pointer to WasmerRuntime
+#' @param instance_name Name of the instance
+#' @param memory_name Name of the exported memory
+#' @param pages Number of pages to grow
+#' @return TRUE if successful
+#' @export
+wasmer_memory_grow_ext <- function(ptr, instance_name, memory_name, pages) .Call(wrap__wasmer_memory_grow_ext, ptr, instance_name, memory_name, pages)
+
 
 # nolint end

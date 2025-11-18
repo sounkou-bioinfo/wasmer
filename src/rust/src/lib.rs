@@ -651,6 +651,149 @@ pub fn wasmer_wat_to_wasm_ext(wat_code: String) -> Robj {
     }
 }
 
+/// Get the size of exported memory (in bytes and pages)
+/// @param ptr External pointer to WasmerRuntime
+/// @param instance_name Name of the instance
+/// @param memory_name Name of the exported memory (default "memory")
+/// @return List with size_bytes and size_pages
+/// @export
+#[extendr]
+pub fn wasmer_memory_size_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String) -> List {
+    let runtime = ptr.as_mut();
+    if let Some(instance) = runtime.instances.get(&instance_name) {
+        if let Ok(memory) = instance.exports.get_memory(&memory_name) {
+            let view = memory.view(&runtime.store);
+            List::from_names_and_values(
+                ["size_bytes", "size_pages"],
+                [r!(view.data_size()), r!(view.size().0)]
+            ).unwrap()
+        } else {
+            List::from_names_and_values(["error"], [r!("Memory not found")]).unwrap()
+        }
+    } else {
+        List::from_names_and_values(["error"], [r!("Instance not found")]).unwrap()
+    }
+}
+
+/// Read bytes from WASM memory
+/// @param ptr External pointer to WasmerRuntime
+/// @param instance_name Name of the instance
+/// @param memory_name Name of the exported memory
+/// @param offset Offset to start reading
+/// @param length Number of bytes to read
+/// @return Raw vector of bytes
+/// @export
+#[extendr]
+pub fn wasmer_memory_read_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, length: i32) -> Robj {
+    let runtime = ptr.as_mut();
+    if let Some(instance) = runtime.instances.get(&instance_name) {
+        if let Ok(memory) = instance.exports.get_memory(&memory_name) {
+            let view = memory.view(&runtime.store);
+            let mut bytes = Vec::new();
+            let data_size = view.data_size().try_into().unwrap();
+            for i in 0..length {
+                let idx = offset + i;
+                if idx >= 0 && (idx as usize) < data_size {
+                    // Read byte using data_ptr
+                    unsafe {
+                        bytes.push(*view.data_ptr().add(idx as usize));
+                    }
+                }
+            }
+            r!(bytes)
+        } else {
+            r!("Memory not found")
+        }
+    } else {
+        r!("Instance not found")
+    }
+}
+
+/// Write bytes to WASM memory
+/// @param ptr External pointer to WasmerRuntime
+/// @param instance_name Name of the instance
+/// @param memory_name Name of the exported memory
+/// @param offset Offset to start writing
+/// @param bytes Raw vector of bytes to write
+/// @return TRUE if successful
+/// @export
+#[extendr]
+pub fn wasmer_memory_write_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, bytes: Robj) -> bool {
+    let runtime = ptr.as_mut();
+    if let Some(instance) = runtime.instances.get(&instance_name) {
+        if let Ok(memory) = instance.exports.get_memory(&memory_name) {
+            let view = memory.view(&runtime.store);
+            if let Some(slice) = bytes.as_raw() {
+                let start = offset as usize;
+                let end = start + slice.len();
+                let data_size = view.data_size().try_into().unwrap();
+                if end <= data_size {
+                    unsafe {
+                        let data_mut = view.data_ptr();
+                        std::ptr::copy_nonoverlapping(slice.as_slice().as_ptr(), data_mut.add(start), slice.len());
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Read UTF-8 string from WASM memory
+/// @param ptr External pointer to WasmerRuntime
+/// @param instance_name Name of the instance
+/// @param memory_name Name of the exported memory
+/// @param offset Offset to start reading
+/// @param length Number of bytes to read
+/// @return String
+/// @export
+#[extendr]
+pub fn wasmer_memory_read_string_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, length: i32) -> String {
+    let runtime = ptr.as_mut();
+    if let Some(instance) = runtime.instances.get(&instance_name) {
+        if let Ok(memory) = instance.exports.get_memory(&memory_name) {
+            let view = memory.view(&runtime.store);
+            let data_size = view.data_size().try_into().unwrap();
+            let mut bytes = Vec::new();
+            for i in 0..length {
+                let idx = offset + i;
+                if idx >= 0 && (idx as usize) < data_size {
+                    unsafe {
+                        bytes.push(*view.data_ptr().add(idx as usize));
+                    }
+                }
+            }
+            String::from_utf8(bytes).unwrap_or_else(|_| "".to_string())
+        } else {
+            "Memory not found".to_string()
+        }
+    } else {
+        "Instance not found".to_string()
+    }
+}
+
+/// Grow WASM memory by a number of pages
+/// @param ptr External pointer to WasmerRuntime
+/// @param instance_name Name of the instance
+/// @param memory_name Name of the exported memory
+/// @param pages Number of pages to grow
+/// @return TRUE if successful
+/// @export
+#[extendr]
+pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, pages: u32) -> bool {
+    let runtime = ptr.as_mut();
+    if let Some(instance) = runtime.instances.get(&instance_name) {
+        if let Ok(memory) = instance.exports.get_memory(&memory_name) {
+            memory.grow(&mut runtime.store, pages).is_ok()
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}
+
 
 
 extendr_module! {
@@ -669,4 +812,9 @@ extendr_module! {
     fn wasmer_call_function_safe_ext;
     fn wasmer_host_function_example_ext;
     fn wasmer_list_function_signatures_ext;
+    fn wasmer_memory_size_ext;
+    fn wasmer_memory_read_ext;
+    fn wasmer_memory_write_ext;
+    fn wasmer_memory_read_string_ext;
+    fn wasmer_memory_grow_ext;
 }

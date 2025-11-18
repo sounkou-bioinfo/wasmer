@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x6471543ad4e0>
+#> <pointer: 0x59348b8de400>
 ```
 
 ### Math Operations compiled from Rust
@@ -219,35 +219,6 @@ all_prime_correct <- all(prime_results$is_prime == prime_results$expected)
 stopifnot(all_prime_correct)
 ```
 
-## Performance Comparison
-
-``` r
-# Native R fibonacci implementation (recursive for fair comparison)
-fib_r <- function(n) {
-  if (n <= 1) return(n)
-  return(fib_r(n-1) + fib_r(n-2))
-}
-
-# Benchmark both implementations
-n_test <- 10L
-
-bench_results <- bench::mark(
-  wasm = wasmer_call_function_ext(runtime, "fib_instance", "fibonacci", list(n_test))$values[[1]],
-  r = fib_r(n_test),
-  check = FALSE,
-  min_iterations = 5
-)
-
-bench_results
-#> # A tibble: 2 × 6
-#>   expression      min   median `itr/sec` mem_alloc `gc/sec`
-#>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.13µs   2.31µs   402933.        0B     40.3
-#> 2 r           26.21µs  27.32µs    36086.    23.1KB     39.7
-# Verify results match
-stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
-```
-
 ## Inspect Exported Function Signatures
 
 ``` r
@@ -274,6 +245,35 @@ print(signatures_prime)
 #> 
 #> $results
 #> [1] "[I32]"
+```
+
+## Performance Comparison
+
+``` r
+# Native R fibonacci implementation (recursive for fair comparison)
+fib_r <- function(n) {
+  if (n <= 1) return(n)
+  return(fib_r(n-1) + fib_r(n-2))
+}
+
+# Benchmark both implementations
+n_test <- 10L
+
+bench_results <- bench::mark(
+  wasm = wasmer_call_function_ext(runtime, "fib_instance", "fibonacci", list(n_test))$values[[1]],
+  r = fib_r(n_test),
+  check = FALSE,
+  min_iterations = 5
+)
+
+bench_results
+#> # A tibble: 2 × 6
+#>   expression      min   median `itr/sec` mem_alloc `gc/sec`
+#>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
+#> 1 wasm         2.14µs   2.34µs   404394.        0B     40.4
+#> 2 r           26.34µs  27.42µs    35769.    23.1KB     39.4
+# Verify results match
+stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
 ## WAT to WASM Binary Conversion and Binary Module Loading
@@ -327,6 +327,40 @@ compile_result
 result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", list(21L))
 stopifnot(result$values[[1]] == 42)
 ```
+
+## Simple WASM Memory Example
+
+This example demonstrates how to use Wasmer’s memory utilities from R.
+
+``` r
+library(wasmer)
+
+# Create a runtime
+rt <- wasmer_runtime_new()
+
+# Compile a simple WAT module with exported memory
+wat <- '(module (memory (export "memory") 1) (func (export "write") (param i32 i32) (result i32)
+  local.get 0
+  local.get 1
+  i32.store
+  local.get 0))'
+wasmer_compile_wat_ext(rt, wat, "memmod")
+wasmer_instantiate_ext(rt, "memmod", "inst")
+
+# Write bytes to memory
+wasmer_memory_write_ext(rt, "inst", "memory", 0, as.raw(c(65, 66, 67))) # Write 'A', 'B', 'C' at offset 0
+
+# Read bytes from memory
+bytes <- wasmer_memory_read_ext(rt, "inst", "memory", 0, 3)
+print(bytes) # Should print raw vector: 41 42 43
+
+# Read as string
+str <- wasmer_memory_read_string_ext(rt, "inst", "memory", 0, 3)
+print(str) # Should print "ABC"
+```
+
+This example shows how to write and read bytes and strings from WASM
+memory using Wasmer’s R interface.
 
 ## LLM Usage Disclosure
 
