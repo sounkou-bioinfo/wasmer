@@ -9,7 +9,7 @@ src/Makevars.win
 # R package build artifacts
 *.tar.gz
 *.Rcheck/
-man/
+#man/
 README.html
 README.knit.md
 

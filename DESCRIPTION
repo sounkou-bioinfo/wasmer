@@ -1,12 +1,13 @@
 Package: wasmer
-Title: WebAssembly Runtime for R using Wasmer
-Version: 0.1.0
+Title: WebAssembly Runtime for 'R' using 'Wasmer'
+Version: 0.0.0.9000
 Authors@R: 
-    person("Your", "Name", , "your.email@example.com", role = c("aut", "cre"))
-Description: R bindings for the Wasmer WebAssembly runtime. This package allows you to 
-    compile, instantiate, and execute WebAssembly modules from R, providing a bridge
-    between R and WebAssembly for high-performance computing and interoperability.
-License: MIT + file LICENSE
+    person(given = "Sounkou Mahamane", family = "Toure",
+     email= "sounkoutoure@gmail.com", role = c("aut", "cre"))
+Description: 'R' bindings for the Wasmer WebAssembly runtime. This package allows you to 
+    compile, instantiate, and execute WebAssembly modules from 'R', providing a bridge
+    between 'R' and WebAssembly for high-performance computing and interoperability.
+License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

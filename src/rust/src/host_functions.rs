@@ -62,4 +62,13 @@ impl WasmerHostFunctions {
 
         functions
     }
+
+    /// Create a generic host function dispatcher for dynamic R function calls from WASM
+    #[allow(dead_code)]
+    pub fn create_generic_r_host_function(store: &mut Store) -> Function {
+        Function::new_typed(store, |_name_ptr: i32, _name_len: i32, _arg: i32| -> i32 {
+            // Placeholder for dynamic R host function call
+            0
+        })
+    }
 }

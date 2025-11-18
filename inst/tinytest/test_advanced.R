@@ -1,8 +1,8 @@
 # Test advanced WebAssembly features
 library(wasmer)
 
-# Initialize runtime
-wasmer_init()
+# Create runtime
+runtime <- wasmer_runtime_new()
 
 # Test 1: Fibonacci module
 fibonacci_wat <- '
@@ -37,13 +37,13 @@ fibonacci_wat <- '
 )
 '
 
-wasmer_compile_wat(fibonacci_wat, "fib_module")
-wasmer_instantiate("fib_module", "fib_instance")
+wasmer_compile_wat_ext(runtime, fibonacci_wat, "fib_module")
+wasmer_instantiate_ext(runtime, "fib_module", "fib_instance")
 
 # Test fibonacci sequence
 fibonacci_expected <- c(0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55)
 for (i in 0:10) {
-    result <- wasmer_call_function_safe("fib_instance", "fibonacci", list(as.integer(i)))
+    result <- wasmer_call_function_ext(runtime, "fib_instance", "fibonacci", list(as.integer(i)))
     tinytest::expect_true(result$success, info = paste("Fibonacci", i, "should succeed"))
     tinytest::expect_equal(result$values[[1]], fibonacci_expected[i + 1],
         info = paste("Fibonacci", i, "should equal", fibonacci_expected[i + 1])
@@ -80,16 +80,16 @@ complex_wat <- '
 )
 '
 
-wasmer_compile_wat(complex_wat, "math_module")
-wasmer_instantiate("math_module", "math_instance")
+wasmer_compile_wat_ext(runtime, complex_wat, "math_module")
+wasmer_instantiate_ext(runtime, "math_module", "math_instance")
 
 # Test GCD function
-gcd_result <- wasmer_call_function_safe("math_instance", "gcd", list(48L, 18L))
+gcd_result <- wasmer_call_function_ext(runtime, "math_instance", "gcd", list(48L, 18L))
 tinytest::expect_true(gcd_result$success)
 tinytest::expect_equal(gcd_result$values[[1]], 6) # GCD(48, 18) = 6
 
 # Test LCM function
-lcm_result <- wasmer_call_function_safe("math_instance", "lcm", list(12L, 8L))
+lcm_result <- wasmer_call_function_ext(runtime, "math_instance", "lcm", list(12L, 8L))
 tinytest::expect_true(lcm_result$success)
 tinytest::expect_equal(lcm_result$values[[1]], 24) # LCM(12, 8) = 24
 
@@ -101,7 +101,7 @@ edge_cases <- list(
 )
 
 for (case in edge_cases) {
-    result <- wasmer_call_function_safe("math_instance", "gcd", list(case$a, case$b))
+    result <- wasmer_call_function_ext(runtime, "math_instance", "gcd", list(case$a, case$b))
     tinytest::expect_true(result$success,
         info = paste("GCD(", case$a, ",", case$b, ") should succeed")
     )
