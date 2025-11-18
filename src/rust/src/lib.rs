@@ -794,7 +794,68 @@ pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
     }
 }
 
+use wasmer::{Function, Table, TableType, Type, Value};
+use extendr_api::wrapper::ExternalPtr;
 
+/// Create a new WASM Table
+/// @param ptr External pointer to WasmerRuntime
+/// @param min Minimum size
+/// @param max Maximum size (optional)
+/// @return External pointer to Table
+/// @export
+#[extendr]
+pub fn wasmer_table_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, min: u32, max: Option<u32>) -> ExternalPtr<Table> {
+    let runtime = ptr.as_mut();
+    let table_type = TableType::new(Type::FuncRef, min, max);
+    let table = Table::new(&mut runtime.store, table_type, Value::FuncRef(None)).unwrap();
+    ExternalPtr::new(table)
+}
+
+/// Set a function reference in a WASM Table
+/// @param ptr External pointer to WasmerRuntime
+/// @param table_ptr External pointer to Table
+/// @param index Index to set
+/// @param func_ptr External pointer to Function
+/// @return TRUE if successful
+/// @export
+#[extendr]
+pub fn wasmer_table_set_ext(mut ptr: ExternalPtr<WasmerRuntime>, table_ptr: ExternalPtr<Table>, index: u32, func_ptr: ExternalPtr<Function>) -> bool {
+    let runtime = ptr.as_mut();
+    let table = table_ptr.as_mut();
+    let func = func_ptr.as_mut();
+    table.set(&mut runtime.store, index, func.clone().into()).is_ok()
+}
+
+/// Grow a WASM Table
+/// @param ptr External pointer to WasmerRuntime
+/// @param table_ptr External pointer to Table
+/// @param delta Number of elements to grow
+/// @param func_ptr External pointer to Function to fill new slots
+/// @return Previous size
+/// @export
+#[extendr]
+pub fn wasmer_table_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, table_ptr: ExternalPtr<Table>, delta: u32, func_ptr: ExternalPtr<Function>) -> u32 {
+    let runtime = ptr.as_mut();
+    let table = table_ptr.as_mut();
+    let func = func_ptr.as_mut();
+    table.grow(&mut runtime.store, delta, func.clone().into()).unwrap_or(0)
+}
+
+/// Get a function reference from a WASM Table
+/// @param ptr External pointer to WasmerRuntime
+/// @param table_ptr External pointer to Table
+/// @param index Index to get
+/// @return External pointer to Function (or NULL)
+/// @export
+#[extendr]
+pub fn wasmer_table_get_ext(mut ptr: ExternalPtr<WasmerRuntime>, table_ptr: ExternalPtr<Table>, index: u32) -> Option<ExternalPtr<Function>> {
+    let runtime = ptr.as_mut();
+    let table = table_ptr.as_mut();
+    match table.get(&mut runtime.store, index) {
+        Ok(Value::FuncRef(Some(f))) => Some(ExternalPtr::new(f.clone())),
+        _ => None,
+    }
+}
 
 extendr_module! {
     mod wasmer;
@@ -817,4 +878,8 @@ extendr_module! {
     fn wasmer_memory_write_ext;
     fn wasmer_memory_read_string_ext;
     fn wasmer_memory_grow_ext;
+    fn wasmer_table_new_ext;
+    fn wasmer_table_set_ext;
+    fn wasmer_table_grow_ext;
+    fn wasmer_table_get_ext;
 }

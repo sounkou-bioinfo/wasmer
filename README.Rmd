@@ -82,6 +82,31 @@ exports <- wasmer_list_exports_ext(runtime, "fib_instance")
 exports
 stopifnot(exports$success == TRUE)
 stopifnot("fibonacci" %in% exports$exports)
+
+# Native R fibonacci implementation (recursive for fair comparison)
+fib_r <- function(n) {
+  if (n <= 1) return(n)
+  return(fib_r(n-1) + fib_r(n-2))
+}
+
+# Benchmark both implementations
+n_test <- 10L
+
+bench_results <- bench::mark(
+  wasm = wasmer_call_function_ext(runtime, "fib_instance", "fibonacci", list(n_test))$values[[1]],
+  r = fib_r(n_test),
+  check = FALSE,
+  min_iterations = 5
+)
+
+bench_results
+#> # A tibble: 2 × 6
+#>   expression      min   median `itr/sec` mem_alloc `gc/sec`
+#>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
+#> 1 wasm         2.14µs   2.34µs   403866.        0B     40.4
+#> 2 r           25.71µs  27.39µs    36005.    23.1KB     39.6
+# Verify results match
+stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
 ### Calculate Fibonacci Numbers
@@ -194,32 +219,6 @@ signatures_prime <- wasmer_list_function_signatures_ext(runtime, "prime_instance
 print(signatures_prime)
 ```
 
-## Performance Comparison
-
-```{r performance}
-# Native R fibonacci implementation (recursive for fair comparison)
-fib_r <- function(n) {
-  if (n <= 1) return(n)
-  return(fib_r(n-1) + fib_r(n-2))
-}
-
-# Benchmark both implementations
-n_test <- 10L
-
-bench_results <- bench::mark(
-  wasm = wasmer_call_function_ext(runtime, "fib_instance", "fibonacci", list(n_test))$values[[1]],
-  r = fib_r(n_test),
-  check = FALSE,
-  min_iterations = 5
-)
-
-bench_results
-# Verify results match
-stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
-```
-
-
-
 ## WAT to WASM Binary Conversion and Binary Module Loading
 
 ```{r wat-to-wasm-binary-roundtrip}
@@ -302,6 +301,57 @@ print(str) # Should print "ABC"
 ```
 
 This example shows how to write and read bytes and strings from WASM memory using Wasmer's R interface.
+
+
+## Generic WASM Table Example
+
+This example demonstrates how to create, set, grow, and use a WASM table from R, matching the Python API flexibility.
+
+```r
+library(wasmer)
+
+# Create runtime
+rt <- wasmer_runtime_new()
+
+# Compile a module with a table and a function using call_indirect
+wat <- ' (module
+  (type $callback_t (func (param i32 i32) (result i32)))
+  (type $call_callback_t (func (param i32 i32 i32) (result i32)))
+  (table $t1 3 6 funcref)
+  (func $default_fn (type $callback_t) (param $a i32) (param $b i32) (result i32)
+     (i32.add (i32.mul (local.get $a) (i32.const 2)) (i32.mul (local.get $b) (i32.const 2))))
+  (elem $t1 (i32.const 0) $default_fn $default_fn $default_fn)
+  (func $call_callback (type $call_callback_t) (param $idx i32) (param $arg1 i32) (param $arg2 i32) (result i32)
+    (call_indirect (type $callback_t) (local.get $arg1) (local.get $arg2) (local.get $idx)))
+  (export "call_callback" (func $call_callback))
+  (export "__indirect_function_table" (table $t1))
+)'
+
+wasmer_compile_wat_ext(rt, wat, "mod")
+wasmer_instantiate_ext(rt, "mod", "inst")
+
+# Get the table from the instance
+table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
+
+# Create a host function (sum)
+host_sum <- function(x, y) as.integer(x + y)
+host_func <- wasmer_function_new_ext(rt, host_sum, c("i32", "i32"), "i32") # You need to implement this
+
+# Set table index 1 to host function
+wasmer_table_set_ext(rt, table_ptr, 1L, host_func)
+
+# Grow the table by 3, filling with host function
+wasmer_table_grow_ext(rt, table_ptr, 3L, host_func)
+
+# Call the WASM function via table
+result <- wasmer_call_function_ext(rt, "inst", "call_callback", list(1L, 2L, 7L))
+print(result$values[[1]]) # Should print 9 (host function sum)
+
+result_default <- wasmer_call_function_ext(rt, "inst", "call_callback", list(0L, 2L, 7L))
+print(result_default$values[[1]]) # Should print 18 (default_fn)
+```
+
+This example shows generic table manipulation and indirect function calls, just like the Python API.
 
 
 ## LLM Usage Disclosure
