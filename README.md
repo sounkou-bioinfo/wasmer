@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x59348b8de400>
+#> <pointer: 0x55fbafe18ac0>
 ```
 
 ### Math Operations compiled from Rust
@@ -270,8 +270,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.14µs   2.34µs   404394.        0B     40.4
-#> 2 r           26.34µs  27.42µs    35769.    23.1KB     39.4
+#> 1 wasm         2.14µs   2.34µs   403866.        0B     40.4
+#> 2 r           25.71µs  27.39µs    36005.    23.1KB     39.6
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
@@ -333,8 +333,6 @@ stopifnot(result$values[[1]] == 42)
 This example demonstrates how to use Wasmer’s memory utilities from R.
 
 ``` r
-library(wasmer)
-
 # Create a runtime
 rt <- wasmer_runtime_new()
 
@@ -345,18 +343,23 @@ wat <- '(module (memory (export "memory") 1) (func (export "write") (param i32 i
   i32.store
   local.get 0))'
 wasmer_compile_wat_ext(rt, wat, "memmod")
+#> [1] "Module 'memmod' compiled successfully"
 wasmer_instantiate_ext(rt, "memmod", "inst")
+#> [1] "Instance 'inst' created successfully"
 
 # Write bytes to memory
 wasmer_memory_write_ext(rt, "inst", "memory", 0, as.raw(c(65, 66, 67))) # Write 'A', 'B', 'C' at offset 0
+#> [1] TRUE
 
 # Read bytes from memory
 bytes <- wasmer_memory_read_ext(rt, "inst", "memory", 0, 3)
 print(bytes) # Should print raw vector: 41 42 43
+#> [1] 41 42 43
 
 # Read as string
 str <- wasmer_memory_read_string_ext(rt, "inst", "memory", 0, 3)
 print(str) # Should print "ABC"
+#> [1] "ABC"
 ```
 
 This example shows how to write and read bytes and strings from WASM

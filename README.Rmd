@@ -276,9 +276,7 @@ stopifnot(result$values[[1]] == 42)
 
 This example demonstrates how to use Wasmer's memory utilities from R.
 
-```r
-library(wasmer)
-
+```{r memory}
 # Create a runtime
 rt <- wasmer_runtime_new()
 
