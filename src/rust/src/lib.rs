@@ -38,7 +38,7 @@ fn read_i32_args_from_memory(instance: &Instance, store: &wasmer::StoreRef, ptr:
 
 #[derive(Clone)]
 pub struct WasmerEnv {
-    pub instance: Instance,
+    pub instance: Option<Instance>,
 }
 
 pub fn register_r_function(name: &str, fun: Robj) {
@@ -50,7 +50,10 @@ pub fn register_r_function(name: &str, fun: Robj) {
 pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut Store) -> Function {
     Function::new_typed_with_env(store, env, |mut env: FunctionEnvMut<WasmerEnv>, name_ptr: i32, name_len: i32, argc: i32, args_ptr: i32| -> i32 {
         let (data, store_mut) = env.data_and_store_mut();
-        let instance = &data.instance;
+        let instance = match &data.instance {
+            Some(inst) => inst,
+            None => return 0,
+        };
         let store_ref = store_mut.as_store_ref();
         // Read function name
         let func_name = match read_string_from_memory(instance, &store_ref, name_ptr, name_len) {
@@ -59,17 +62,37 @@ pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut 
         };
         // Read arguments
         let args = read_i32_args_from_memory(instance, &store_ref, args_ptr, argc);
+        // Diagnostics: print function name and arguments
+        rprintln!("[wasmer] Host call: func_name='{}', args={:?}", func_name, args);
+        // Print registry contents
+        R_FUNCTION_REGISTRY.with(|reg| {
+            let keys: Vec<String> = reg.borrow().keys().cloned().collect();
+            rprintln!("[wasmer] Registry keys: {:?}", keys);
+        });
         // Lookup and call R function
         let result = R_FUNCTION_REGISTRY.with(|reg| {
             reg.borrow().get(&func_name).cloned()
         }).and_then(|rfun| {
-            let r_args = args.into_iter().map(|x| r!(x)).collect::<Vec<Robj>>();
-            rfun.call(pairlist!(r_args)).ok()
+            rprintln!("[wasmer] Found R function for '{}', calling...", func_name);
+            if args.len() == 1 {
+                rprintln!("[wasmer] Calling with single arg: {:?}", args[0]);
+                rfun.call(pairlist!(args[0])).ok()
+            } else {
+                let r_args = args.clone().into_iter().map(|x| r!(x)).collect::<Vec<Robj>>();
+                rprintln!("[wasmer] Calling with arg list: {:?}", r_args);
+                rfun.call(pairlist!(r_args)).ok()
+            }
         });
         if let Some(r) = result {
+            rprintln!("[wasmer] R call result: {:?}", r);
             if let Some(val) = r.as_integer() {
+                rprintln!("[wasmer] Returning integer value: {}", val);
                 return val;
+            } else {
+                rprintln!("[wasmer] R function '{}' did not return an integer: {:?}", func_name, r);
             }
+        } else {
+            rprintln!("[wasmer] R function '{}' not found or call failed.", func_name);
         }
         0 // fallback
     })
@@ -147,25 +170,18 @@ fn wasmer_compile_wat(runtime: &mut WasmerRuntime, wat_code: String, module_name
 
 fn wasmer_instantiate(runtime: &mut WasmerRuntime, module_name: String, instance_name: String) -> String {
     if let Some(module) = runtime.modules.get(&module_name) {
-        match Instance::new(&mut runtime.store, module, &imports! {}) {
-            Ok(instance) => {
-                // Now create the env with the real instance
-                let env = FunctionEnv::new(&mut runtime.store, WasmerEnv { instance: instance.clone() });
-                // Create the import object with the host function
-                let import_object = imports! {
-                    "env" => {
-                        "r_host_call" => create_generic_r_host_function(&env, &mut runtime.store),
-                    }
-                };
-                // Re-instantiate with the correct import object
-                match Instance::new(&mut runtime.store, module, &import_object) {
-                    Ok(final_instance) => {
-                        runtime.instances.insert(instance_name.clone(), final_instance.clone());
-                        runtime.env = Some(env);
-                        format!("Instance '{}' created successfully", instance_name)
-                    }
-                    Err(e) => format!("Error creating instance: {}", e),
-                }
+        let env = FunctionEnv::new(&mut runtime.store, WasmerEnv { instance: None });
+        let import_object = imports! {
+            "env" => {
+                "r_host_call" => create_generic_r_host_function(&env, &mut runtime.store),
+            }
+        };
+        match Instance::new(&mut runtime.store, module, &import_object) {
+            Ok(final_instance) => {
+                env.as_mut(&mut runtime.store).instance = Some(final_instance.clone());
+                runtime.instances.insert(instance_name.clone(), final_instance.clone());
+                runtime.env = Some(env);
+                format!("Instance '{}' created successfully", instance_name)
             }
             Err(e) => format!("Error creating instance: {}", e),
         }
@@ -586,7 +602,8 @@ pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
 #[extendr]
 pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name: String, fun: Robj) -> bool {
     let runtime = ptr.as_mut();
-    runtime.r_function_registry.insert(name, fun);
+    runtime.r_function_registry.insert(name.clone(), fun.clone());
+    register_r_function(&name, fun); // Ensure global registry is updated
     true
 }
 
