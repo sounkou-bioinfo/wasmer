@@ -221,5 +221,29 @@ wasmer_function_new_static_ext <- function(ptr, rfun, name) .Call(wrap__wasmer_f
 #' @export
 wasmer_get_exported_table_ext <- function(ptr, instance_name, table_export_name) .Call(wrap__wasmer_get_exported_table_ext, ptr, instance_name, table_export_name)
 
+#' Create a Wasmer host function from an R function with static signature (i32) -> i32
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @param name Character string for registry name
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_i32_to_i32 <- function(ptr, rfun, name) .Call(wrap__wasmer_function_new_i32_to_i32, ptr, rfun, name)
+
+#' Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @param name Character string for registry name
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_i32_i32_to_i32 <- function(ptr, rfun, name) .Call(wrap__wasmer_function_new_i32_i32_to_i32, ptr, rfun, name)
+
+#' Create a Wasmer host function from an R function with static signature (f64, f64) -> f64
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @param name Character string for registry name
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_f64_f64_to_f64 <- function(ptr, rfun, name) .Call(wrap__wasmer_function_new_f64_f64_to_f64, ptr, rfun, name)
+
 
 # nolint end

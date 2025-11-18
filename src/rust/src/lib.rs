@@ -1002,6 +1002,98 @@ pub fn wasmer_get_exported_table_ext(
     None
 }
 
+// Macro to generate static R host function wrappers for common signatures
+macro_rules! impl_r_host_function {
+    // (i32) -> i32
+    ($fn_name:ident, i32, i32) => {
+        /// Create a Wasmer host function from an R function with static signature (i32) -> i32
+        /// @param ptr External pointer to WasmerRuntime
+        /// @param rfun R function object
+        /// @param name Character string for registry name
+        /// @return External pointer to Function
+        /// @export
+        #[extendr]
+        pub fn $fn_name(
+            mut ptr: ExternalPtr<WasmerRuntime>,
+            rfun: Robj,
+            name: String
+        ) -> ExternalPtr<Function> {
+            let runtime = ptr.as_mut();
+            register_r_function(&name, rfun.clone());
+            let name_cloned = name.clone();
+            let fun = Function::new_typed(&mut runtime.store, move |x: i32| -> i32 {
+                let result = R_FUNCTION_REGISTRY.with(|reg| {
+                    reg.borrow().get(&name_cloned).cloned()
+                }).and_then(|rfun| {
+                    rfun.call(pairlist!(r!(x))).ok()
+                });
+                result.and_then(|r| r.as_integer()).unwrap_or(0)
+            });
+            ExternalPtr::new(fun)
+        }
+    };
+    // (i32, i32) -> i32
+    ($fn_name:ident, (i32, i32), i32) => {
+        /// Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
+        /// @param ptr External pointer to WasmerRuntime
+        /// @param rfun R function object
+        /// @param name Character string for registry name
+        /// @return External pointer to Function
+        /// @export
+        #[extendr]
+        pub fn $fn_name(
+            mut ptr: ExternalPtr<WasmerRuntime>,
+            rfun: Robj,
+            name: String
+        ) -> ExternalPtr<Function> {
+            let runtime = ptr.as_mut();
+            register_r_function(&name, rfun.clone());
+            let name_cloned = name.clone();
+            let fun = Function::new_typed(&mut runtime.store, move |x: i32, y: i32| -> i32 {
+                let result = R_FUNCTION_REGISTRY.with(|reg| {
+                    reg.borrow().get(&name_cloned).cloned()
+                }).and_then(|rfun| {
+                    rfun.call(pairlist!(r!(x), r!(y))).ok()
+                });
+                result.and_then(|r| r.as_integer()).unwrap_or(0)
+            });
+            ExternalPtr::new(fun)
+        }
+    };
+    // (f64, f64) -> f64
+    ($fn_name:ident, (f64, f64), f64) => {
+        /// Create a Wasmer host function from an R function with static signature (f64, f64) -> f64
+        /// @param ptr External pointer to WasmerRuntime
+        /// @param rfun R function object
+        /// @param name Character string for registry name
+        /// @return External pointer to Function
+        /// @export
+        #[extendr]
+        pub fn $fn_name(
+            mut ptr: ExternalPtr<WasmerRuntime>,
+            rfun: Robj,
+            name: String
+        ) -> ExternalPtr<Function> {
+            let runtime = ptr.as_mut();
+            register_r_function(&name, rfun.clone());
+            let name_cloned = name.clone();
+            let fun = Function::new_typed(&mut runtime.store, move |x: f64, y: f64| -> f64 {
+                let result = R_FUNCTION_REGISTRY.with(|reg| {
+                    reg.borrow().get(&name_cloned).cloned()
+                }).and_then(|rfun| {
+                    rfun.call(pairlist!(r!(x), r!(y))).ok()
+                });
+                result.and_then(|r| r.as_real()).unwrap_or(0.0)
+            });
+            ExternalPtr::new(fun)
+        }
+    };
+    // Add more signatures as needed
+}
+impl_r_host_function!(wasmer_function_new_i32_to_i32, i32, i32);
+impl_r_host_function!(wasmer_function_new_i32_i32_to_i32, (i32, i32), i32);
+impl_r_host_function!(wasmer_function_new_f64_f64_to_f64, (f64, f64), f64);
+
 extendr_module! {
     mod wasmer;
     fn wasmer_runtime_new;
@@ -1030,4 +1122,7 @@ extendr_module! {
     fn wasmer_function_new_ext;
     fn wasmer_function_new_static_ext;
     fn wasmer_get_exported_table_ext;
+    fn wasmer_function_new_i32_to_i32;
+    fn wasmer_function_new_i32_i32_to_i32;
+    fn wasmer_function_new_f64_f64_to_f64;
 }

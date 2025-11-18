@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5a319ec62740>
+#> <pointer: 0x617d695df800>
 ```
 
 ### Math Operations compiled from Rust
@@ -112,8 +112,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.08µs   2.25µs   360239.    2.61KB     36.0
-#> 2 r            25.7µs  26.82µs    36461.   32.66KB     32.8
+#> 1 wasm         2.11µs   2.29µs   358608.    2.61KB     35.9
+#> 2 r           26.16µs  27.36µs    35987.   32.66KB     32.4
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
@@ -379,6 +379,8 @@ host functions for direct import/export (not tables)
 rt <- wasmer_runtime_new()
 
 # --- Table Example (static host function) ---
+# Note: Static host functions are generated and exported via macros in Rust for common signatures.
+#       Only these can be inserted into WASM tables (funcref) due to Wasmer backend restrictions.
 wat_table <- ' (module
   (type $callback_t (func (param i32 i32) (result i32)))
   (type $call_callback_t (func (param i32 i32 i32) (result i32)))
@@ -401,6 +403,7 @@ wasmer_instantiate_ext(rt, "mod_table", "inst_table")
 r_table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
 
 # Create a host function (sum) with static signature (i32, i32) -> i32
+# This uses a macro-generated wrapper in Rust (see package source for supported signatures)
 host_sum <- function(x, y) as.integer(x + y)
 host_func <- wasmer_function_new_static_ext(rt, host_sum, "host_sum")
 
@@ -440,7 +443,8 @@ result_dyn$values[[1]] # Should print 9
 
 # --- Table Limitation Note ---
 # Dynamic host functions (created with wasmer_function_new_ext) cannot be inserted into tables or used as funcref.
-# Only static host functions (wasmer_function_new_static_ext) are allowed in tables/funcref due to Wasmer backend restrictions.
+# Only static host functions (wasmer_function_new_static_ext, macro-generated for supported signatures) are allowed in tables/funcref due to Wasmer backend restrictions.
+# See the package source for the list of supported static signatures and how to extend them via macros.
 ```
 
 ## LLM Usage Disclosure
