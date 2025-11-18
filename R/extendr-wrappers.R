@@ -106,5 +106,12 @@ wasmer_call_function_safe_ext <- function(ptr, instance_name, function_name, arg
 #' @export
 wasmer_host_function_example_ext <- function(ptr) .Call(wrap__wasmer_host_function_example_ext, ptr)
 
+#' List exported function signatures (name, input types, output types) for a WASM instance
+#' @param ptr External pointer to WasmerRuntime
+#' @param instance_name Name of the instance
+#' @return Data frame with columns: name, params, results
+#' @export
+wasmer_list_function_signatures_ext <- function(ptr, instance_name) .Call(wrap__wasmer_list_function_signatures_ext, ptr, instance_name)
+
 
 # nolint end
