@@ -951,6 +951,34 @@ pub fn wasmer_function_new_ext(
     ExternalPtr::new(fun)
 }
 
+/// Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
+/// This is required for WASM tables and funcref use.
+/// @param ptr External pointer to WasmerRuntime
+/// @param rfun R function object
+/// @param name Character string for registry name
+/// @return External pointer to Function
+/// @export
+#[extendr]
+pub fn wasmer_function_new_static_ext(
+    mut ptr: ExternalPtr<WasmerRuntime>,
+    rfun: Robj,
+    name: String
+) -> ExternalPtr<Function> {
+    let runtime = ptr.as_mut();
+    register_r_function(&name, rfun.clone());
+    let name_cloned = name.clone();
+    // Only supports (i32, i32) -> i32 for now
+    let fun = Function::new_typed(&mut runtime.store, move |x: i32, y: i32| -> i32 {
+        let result = R_FUNCTION_REGISTRY.with(|reg| {
+            reg.borrow().get(&name_cloned).cloned()
+        }).and_then(|rfun| {
+            rfun.call(pairlist!(r!(x), r!(y))).ok()
+        });
+        result.and_then(|r| r.as_integer()).unwrap_or(0)
+    });
+    ExternalPtr::new(fun)
+}
+
 extendr_module! {
     mod wasmer;
     fn wasmer_runtime_new;
@@ -977,4 +1005,5 @@ extendr_module! {
     fn wasmer_table_grow_ext;
     fn wasmer_table_get_ext;
     fn wasmer_function_new_ext;
+    fn wasmer_function_new_static_ext;
 }

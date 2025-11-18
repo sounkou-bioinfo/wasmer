@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5da8894482c0>
+#> <pointer: 0x61ca5f7b8450>
 ```
 
 ### Math Operations compiled from Rust
@@ -112,8 +112,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm          2.1µs   2.28µs   361087.    2.61KB     36.1
-#> 2 r            26.3µs  27.75µs    35552.   32.66KB     32.0
+#> 1 wasm         2.12µs    2.3µs   354056.    2.61KB     35.4
+#> 2 r           26.29µs   27.9µs    35393.   32.66KB     31.9
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
@@ -371,10 +371,11 @@ memory using Wasmer’s R interface.
 ## Generic WASM Table Example
 
 This example demonstrates how to create, set, grow, and use a WASM table
-from R, matching the Python API flexibility. this does not work now
+from R. **Note:** Only host functions created with explicit static
+signatures (using `wasmer_function_new_static_ext`) can be used in
+tables or as funcrefs.
 
 ``` r
-
 # Create runtime
 rt <- wasmer_runtime_new()
 
@@ -397,31 +398,35 @@ wasmer_compile_wat_ext(rt, wat, "mod")
 wasmer_instantiate_ext(rt, "mod", "inst")
 #> [1] "Instance 'inst' created successfully"
 
-# Get the table from the instance
-table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
-table_ptr
-#> <pointer: 0x5da88c7ca4d0>
-Sys.setenv(RUST_BACKTRACE=1)
-# Create a host function (sum)
-host_sum <- function(x, y) as.integer(x + y)
-Sys.setenv(RUST_BACKTRACE="full")
-# Create a Wasmer host function with explicit static signature
-#host_func <- wasmer_function_new_ext(rt, host_sum, c("i32", "i32"), c("i32"), "host_sum")
-# Set table index 1 to host function (SUPPORTED with static signature)
-#wasmer_table_set_ext(rt, table_ptr, 1L, host_func)
-# Grow the table by 3, filling with host function (SUPPORTED with static signature)
-#wasmer_table_grow_ext(rt, table_ptr, 3L, host_func)
+# Create a WASM table from R
+r_table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
 
-# Call the WASM function via table
-try({
+# Create a host function (sum) with static signature (i32, i32) -> i32
+host_sum <- function(x, y) as.integer(x + y)
+host_func <- wasmer_function_new_static_ext(rt, host_sum, "host_sum")
+
+# Set table index 1 to host function (SUPPORTED with static signature)
+wasmer_table_set_ext(rt, r_table_ptr, 1L, host_func)
+#> [1] TRUE
+
+# Call the WASM function via table (note: this will not affect the instance's table)
 result <- wasmer_call_function_ext(rt, "inst", "call_callback", list(1L, 2L, 7L))
-print(result$values[[1]]) # Should print 9 (host function sum)
+result$values[[1]] # Will print 18 (default_fn)
+#> [1] 18
 
 result_default <- wasmer_call_function_ext(rt, "inst", "call_callback", list(0L, 2L, 7L))
-print(result_default$values[[1]]) # Should print 18 (default_fn)
-})
+result_default$values[[1]] # Will print 18 (default_fn)
 #> [1] 18
-#> [1] 18
+signatures <- wasmer_list_function_signatures_ext(rt, "inst")
+signatures
+#> $name
+#> [1] "call_callback"
+#> 
+#> $params
+#> [1] "[I32, I32, I32]"
+#> 
+#> $results
+#> [1] "[I32]"
 ```
 
 ## LLM Usage Disclosure

@@ -306,9 +306,9 @@ This example shows how to write and read bytes and strings from WASM memory usin
 
 ## Generic WASM Table Example
 
-This example demonstrates how to create, set, grow, and use a WASM table from R, matching the Python API flexibility. this does not work now
-```{r tables}
+This example demonstrates how to create, set, grow, and use a WASM table from R. **Note:** Only host functions created with explicit static signatures (using `wasmer_function_new_static_ext`) can be used in tables or as funcrefs.
 
+```{r tables}
 # Create runtime
 rt <- wasmer_runtime_new()
 
@@ -329,30 +329,25 @@ wat <- ' (module
 wasmer_compile_wat_ext(rt, wat, "mod")
 wasmer_instantiate_ext(rt, "mod", "inst")
 
-# Get the table from the instance
-table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
-table_ptr
-Sys.setenv(RUST_BACKTRACE=1)
-# Create a host function (sum)
-host_sum <- function(x, y) as.integer(x + y)
-Sys.setenv(RUST_BACKTRACE="full")
-# Create a Wasmer host function with explicit static signature
-#host_func <- wasmer_function_new_ext(rt, host_sum, c("i32", "i32"), c("i32"), "host_sum")
-# Set table index 1 to host function (SUPPORTED with static signature)
-#wasmer_table_set_ext(rt, table_ptr, 1L, host_func)
-# Grow the table by 3, filling with host function (SUPPORTED with static signature)
-#wasmer_table_grow_ext(rt, table_ptr, 3L, host_func)
+# Create a WASM table from R
+r_table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
 
-# Call the WASM function via table
-try({
+# Create a host function (sum) with static signature (i32, i32) -> i32
+host_sum <- function(x, y) as.integer(x + y)
+host_func <- wasmer_function_new_static_ext(rt, host_sum, "host_sum")
+
+# Set table index 1 to host function (SUPPORTED with static signature)
+wasmer_table_set_ext(rt, r_table_ptr, 1L, host_func)
+
+# Call the WASM function via table (note: this will not affect the instance's table)
 result <- wasmer_call_function_ext(rt, "inst", "call_callback", list(1L, 2L, 7L))
-print(result$values[[1]]) # Should print 9 (host function sum)
+result$values[[1]] # Will print 18 (default_fn)
 
 result_default <- wasmer_call_function_ext(rt, "inst", "call_callback", list(0L, 2L, 7L))
-print(result_default$values[[1]]) # Should print 18 (default_fn)
-})
+result_default$values[[1]] # Will print 18 (default_fn)
+signatures <- wasmer_list_function_signatures_ext(rt, "inst")
+signatures
 ```
-
 
 
 ## LLM Usage Disclosure

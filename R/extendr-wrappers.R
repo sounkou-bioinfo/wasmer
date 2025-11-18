@@ -204,5 +204,14 @@ wasmer_table_get_ext <- function(ptr, table_ptr, index) .Call(wrap__wasmer_table
 #' @export
 wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, name) .Call(wrap__wasmer_function_new_ext, ptr, rfun, arg_types, ret_types, name)
 
+#' Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
+#' This is required for WASM tables and funcref use.
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @param name Character string for registry name
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_static_ext <- function(ptr, rfun, name) .Call(wrap__wasmer_function_new_static_ext, ptr, rfun, name)
+
 
 # nolint end
