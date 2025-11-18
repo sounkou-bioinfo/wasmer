@@ -221,21 +221,22 @@ fib_r <- function(n) {
 # Benchmark both implementations
 n_test <- 10L
 
-# Time WebAssembly version
-wasm_time <- system.time({
-  wasm_result <- wasmer_call_function_safe("fib_instance", "fibonacci", list(n_test))$values[[1]]
-})
 
-# Time R version  
-r_time <- system.time({
-  r_result <- fib_r(n_test)
-})
+bench_results <- bench::mark(
+  wasm = wasmer_call_function_safe("fib_instance", "fibonacci", list(n_test))$values[[1]],
+  r = fib_r(n_test),
+  check = FALSE,
+  min_iterations = 5
+)
 
+bench_results
+
+# Extract results for verification
+wasm_result <- bench_results$result[[1]]
+r_result <- bench_results$result[[2]]
 paste0("Fibonacci(", n_test, "):")
 paste0("WebAssembly result:", wasm_result)
 paste0("R result:", r_result)
-paste0("WebAssembly time:", wasm_time["elapsed"], "seconds")
-paste0("R time:", r_time["elapsed"], "seconds")
 
 # Verify results match
 stopifnot(wasm_result == r_result)

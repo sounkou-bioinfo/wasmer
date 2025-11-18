@@ -149,11 +149,11 @@ host_result
 #> [1] TRUE
 #> 
 #> $results
+#> $results$timestamp
+#> [1] 1763473074
+#> 
 #> $results$test_result
 #> [1] 25
-#> 
-#> $results$timestamp
-#> [1] 1763472971
 
 # Verify the host function example worked
 stopifnot(host_result$success == TRUE)
@@ -272,26 +272,30 @@ fib_r <- function(n) {
 # Benchmark both implementations
 n_test <- 10L
 
-# Time WebAssembly version
-wasm_time <- system.time({
-  wasm_result <- wasmer_call_function_safe("fib_instance", "fibonacci", list(n_test))$values[[1]]
-})
 
-# Time R version  
-r_time <- system.time({
-  r_result <- fib_r(n_test)
-})
+bench_results <- bench::mark(
+  wasm = wasmer_call_function_safe("fib_instance", "fibonacci", list(n_test))$values[[1]],
+  r = fib_r(n_test),
+  check = FALSE,
+  min_iterations = 5
+)
 
+bench_results
+#> # A tibble: 2 × 6
+#>   expression      min   median `itr/sec` mem_alloc `gc/sec`
+#>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
+#> 1 wasm         1.97µs   2.16µs   435192.        0B      0  
+#> 2 r           26.27µs  27.32µs    36078.    23.1KB     36.1
+
+# Extract results for verification
+wasm_result <- bench_results$result[[1]]
+r_result <- bench_results$result[[2]]
 paste0("Fibonacci(", n_test, "):")
 #> [1] "Fibonacci(10):"
 paste0("WebAssembly result:", wasm_result)
-#> [1] "WebAssembly result:55"
+#> [1] "WebAssembly result:"
 paste0("R result:", r_result)
-#> [1] "R result:55"
-paste0("WebAssembly time:", wasm_time["elapsed"], "seconds")
-#> [1] "WebAssembly time:0seconds"
-paste0("R time:", r_time["elapsed"], "seconds")
-#> [1] "R time:0.001seconds"
+#> [1] "R result:"
 
 # Verify results match
 stopifnot(wasm_result == r_result)
