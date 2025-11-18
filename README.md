@@ -23,7 +23,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5abd49c34810>
+#> <pointer: 0x651a7a7be6d0>
 ```
 
 ### Math Operations compiled from Rust
@@ -234,8 +234,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm          2.1µs   2.33µs   402850.        0B     40.3
-#> 2 r            26.3µs     28µs    35323.    23.1KB     38.9
+#> 1 wasm         2.11µs   2.31µs   403587.        0B     40.4
+#> 2 r           26.34µs  27.32µs    36141.    23.1KB     39.8
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
@@ -269,11 +269,27 @@ stopifnot(result_bin$values[[1]] == 42)
 
 ``` r
 # Define an R function to double a value
-r_double <- function(x) x * 2
-
-# Register the R function in the runtime
+r_double <- function(x) as.integer(x * 2)
 wasmer_register_r_function_ext(runtime, "r_double", r_double)
 #> [1] TRUE
+
+wat_code <- '
+(module
+  (import "env" "r_host_call" (func $r_host_call (param i32 i32 i32 i32) (result i32)))
+  (memory (export "memory") 1)
+  (data (i32.const 0) "r_double")
+  (func $call_r_double (export "call_r_double") (param $x i32) (result i32)
+    (i32.store (i32.const 100) (local.get $x))
+    (call $r_host_call (i32.const 0) (i32.const 8) (i32.const 1) (i32.const 100))
+  )
+)
+'
+
+compile_result <- wasmer_compile_wat_ext(runtime, wat_code, "rhost_module")
+instance_result
+#> [1] "Instance 'fib_instance' created successfully"
+result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", list(21L))
+stopifnot(result$values[[1]] == 42)
 ```
 
 ## LLM Usage Disclosure

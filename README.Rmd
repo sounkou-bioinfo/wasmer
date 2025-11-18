@@ -232,10 +232,25 @@ stopifnot(result_bin$values[[1]] == 42)
 
 ```{r r-host-function-example}
 # Define an R function to double a value
-r_double <- function(x) x * 2
-
-# Register the R function in the runtime
+r_double <- function(x) as.integer(x * 2)
 wasmer_register_r_function_ext(runtime, "r_double", r_double)
+
+wat_code <- '
+(module
+  (import "env" "r_host_call" (func $r_host_call (param i32 i32 i32 i32) (result i32)))
+  (memory (export "memory") 1)
+  (data (i32.const 0) "r_double")
+  (func $call_r_double (export "call_r_double") (param $x i32) (result i32)
+    (i32.store (i32.const 100) (local.get $x))
+    (call $r_host_call (i32.const 0) (i32.const 8) (i32.const 1) (i32.const 100))
+  )
+)
+'
+
+compile_result <- wasmer_compile_wat_ext(runtime, wat_code, "rhost_module")
+instance_result
+result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", list(21L))
+stopifnot(result$values[[1]] == 42)
 ```
 
 ## LLM Usage Disclosure
