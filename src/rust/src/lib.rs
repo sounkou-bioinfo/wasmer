@@ -256,6 +256,38 @@ fn wasmer_list_exports(runtime: &mut WasmerRuntime, instance_name: String) -> Li
     }
 }
 
+/// List exported function signatures (name, input types, output types) for a WASM instance
+/// @param ptr External pointer to WasmerRuntime
+/// @param instance_name Name of the instance
+/// @return Data frame with columns: name, params, results
+/// @export
+#[extendr]
+pub fn wasmer_list_function_signatures_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String) -> List {
+    let runtime = ptr.as_mut();
+    if let Some(instance) = runtime.instances.get(&instance_name) {
+        let module = instance.module();
+        let mut names = Vec::new();
+        let mut params = Vec::new();
+        let mut results = Vec::new();
+        for export in module.exports() {
+            if let wasmer::ExternType::Function(func_ty) = export.ty() {
+                names.push(export.name().to_string());
+                params.push(format!("{:?}", func_ty.params()));
+                results.push(format!("{:?}", func_ty.results()));
+            }
+        }
+        List::from_names_and_values(
+            ["name", "params", "results"],
+            [r!(names), r!(params), r!(results)]
+        ).unwrap()
+    } else {
+        List::from_names_and_values(
+            ["error"],
+            [r!(format!("Instance '{}' not found", instance_name))]
+        ).unwrap()
+    }
+}
+
 /// Create a simple "Hello World" example
 /// @param runtime External pointer to WasmerRuntime
 /// @return String result from WASM hello function
@@ -636,4 +668,5 @@ extendr_module! {
     fn wasmer_instantiate_with_math_imports_ext;
     fn wasmer_call_function_safe_ext;
     fn wasmer_host_function_example_ext;
+    fn wasmer_list_function_signatures_ext;
 }

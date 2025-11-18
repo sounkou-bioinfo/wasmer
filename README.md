@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5af6db0b3810>
+#> <pointer: 0x5cd1be77b810>
 ```
 
 ### Math Operations compiled from Rust
@@ -242,8 +242,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.07µs   2.28µs   409920.        0B     41.0
-#> 2 r           25.65µs  26.74µs    36774.    23.1KB     40.5
+#> 1 wasm         2.12µs   2.33µs   398862.        0B     39.9
+#> 2 r           26.17µs  27.46µs    35711.    23.1KB     39.3
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
@@ -294,8 +294,8 @@ wat_code <- '
 '
 
 compile_result <- wasmer_compile_wat_ext(runtime, wat_code, "rhost_module")
-instance_result
-#> [1] "Instance 'fib_instance' created successfully"
+compile_result
+#> [1] "Module 'rhost_module' compiled successfully"
 result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", list(21L))
 stopifnot(result$values[[1]] == 42)
 ```

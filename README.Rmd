@@ -254,7 +254,7 @@ wat_code <- '
 '
 
 compile_result <- wasmer_compile_wat_ext(runtime, wat_code, "rhost_module")
-instance_result
+compile_result
 result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", list(21L))
 stopifnot(result$values[[1]] == 42)
 ```
