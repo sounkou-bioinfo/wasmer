@@ -156,7 +156,12 @@ fn wasmer_list_exports(runtime: &mut WasmerRuntime, instance_name: String) -> Li
 }
 
 /// Create a simple "Hello World" example
-pub fn wasmer_hello_world_example(runtime: &mut WasmerRuntime) -> String {
+/// @param runtime External pointer to WasmerRuntime
+/// @return String result from WASM hello function
+/// @export
+#[extendr]
+pub fn wasmer_hello_world_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> String {
+    let runtime = ptr.as_mut();
     let wat_code = r#"
 (module
   (func $hello (export "hello") (result i32)
@@ -189,7 +194,14 @@ pub fn wasmer_hello_world_example(runtime: &mut WasmerRuntime) -> String {
 }
 
 /// Math operations example
-pub fn wasmer_math_example(runtime: &mut WasmerRuntime, a: i32, b: i32) -> List {
+/// @param runtime External pointer to WasmerRuntime
+/// @param a First integer
+/// @param b Second integer
+/// @return List with results of add and multiply
+/// @export
+#[extendr]
+pub fn wasmer_math_example_ext(mut ptr: ExternalPtr<WasmerRuntime>, a: i32, b: i32) -> List {
+    let runtime = ptr.as_mut();
     let wat_code = r#"
 (module
   (func $add (export "add") (param $x i32) (param $y i32) (result i32)
@@ -240,10 +252,14 @@ pub fn wasmer_math_example(runtime: &mut WasmerRuntime, a: i32, b: i32) -> List 
 }
 
 /// Create an instance with host functions for mathematical operations
+/// @param runtime External pointer to WasmerRuntime
 /// @param module_name String name of the module to instantiate
 /// @param instance_name String name to identify this instance
+/// @return Status message
 /// @export
-pub fn wasmer_instantiate_with_math_imports(runtime: &mut WasmerRuntime, module_name: String, instance_name: String) -> String {
+#[extendr]
+pub fn wasmer_instantiate_with_math_imports_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String, instance_name: String) -> String {
+    let runtime = ptr.as_mut();
     if let Some(module) = runtime.modules.get(&module_name) {
         let math_functions = WasmerHostFunctions::create_math_functions(&mut runtime.store);
         let import_object = imports! {
@@ -269,11 +285,15 @@ pub fn wasmer_instantiate_with_math_imports(runtime: &mut WasmerRuntime, module_
 }
 
 /// Advanced function calling with type safety
+/// @param runtime External pointer to WasmerRuntime
 /// @param instance_name String name of the instance
 /// @param function_name String name of the function to call
 /// @param args List of arguments with proper type conversion
+/// @return List with success flag and result or error
 /// @export
-pub fn wasmer_call_function_safe(runtime: &mut WasmerRuntime, instance_name: String, function_name: String, args: List) -> List {
+#[extendr]
+pub fn wasmer_call_function_safe_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, function_name: String, args: List) -> List {
+    let runtime = ptr.as_mut();
     if let Some(instance) = runtime.instances.get(&instance_name) {
         if let Ok(func) = instance.exports.get_function(&function_name) {
             // Convert R arguments to Wasm values using the type converter
@@ -316,8 +336,12 @@ pub fn wasmer_call_function_safe(runtime: &mut WasmerRuntime, instance_name: Str
 }
 
 /// Example with host function imports
+/// @param runtime External pointer to WasmerRuntime
+/// @return List with results
 /// @export
-pub fn wasmer_host_function_example(runtime: &mut WasmerRuntime) -> List {
+#[extendr]
+pub fn wasmer_host_function_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> List {
+    let runtime = ptr.as_mut();
     let wat_code = r#"
 (module
   (func $square (import "env" "square") (param i32) (result i32))
@@ -391,6 +415,7 @@ pub fn wasmer_host_function_example(runtime: &mut WasmerRuntime) -> List {
 }
 
 /// Create a new Wasmer runtime for R. Returns an external pointer to the runtime object.
+/// @return External pointer to WasmerRuntime
 /// @export
 #[extendr]
 pub fn wasmer_runtime_new() -> ExternalPtr<WasmerRuntime> {
@@ -418,7 +443,6 @@ pub fn wasmer_compile_wat_ext(mut ptr: ExternalPtr<WasmerRuntime>, wat_code: Str
 #[extendr]
 pub fn wasmer_compile_wasm_ext(mut ptr: ExternalPtr<WasmerRuntime>, wasm_bytes: Robj, module_name: String) -> String {
     let runtime = ptr.as_mut();
-    // Convert R raw vector to Vec<u8>
     let bytes: Vec<u8> = match wasm_bytes.as_raw() {
         Some(slice) => slice.as_slice().to_vec(),
         None => return "Input is not a raw vector".to_string(),
@@ -468,7 +492,7 @@ pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
     wasmer_list_exports(runtime, instance_name)
 }
 
-/// Register an R function for use as a host function in WASM.
+/// Register an R function for use as a host function in WASM (per-runtime)
 /// @param ptr External pointer to WasmerRuntime
 /// @param name Name to register the function under
 /// @param fun R function object
@@ -479,26 +503,6 @@ pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name:
     let runtime = ptr.as_mut();
     runtime.r_function_registry.insert(name, fun);
     true
-}
-
-/// Math operations example
-/// @param runtime External pointer to WasmerRuntime
-/// @param a First integer
-/// @param b Second integer
-/// @return List with results of add and multiply
-/// @export
-#[extendr]
-pub fn wasmer_math_example_ext(mut runtime: ExternalPtr<WasmerRuntime>, a: i32, b: i32) -> List {
-    wasmer_math_example(runtime.as_mut(), a, b)
-}
-
-/// Simple Hello World WASM example
-/// @param runtime External pointer to WasmerRuntime
-/// @return String result from WASM hello function
-/// @export
-#[extendr]
-pub fn wasmer_hello_world_example_ext(mut runtime: ExternalPtr<WasmerRuntime>) -> String {
-    wasmer_hello_world_example(runtime.as_mut())
 }
 
 /// Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector
@@ -513,6 +517,8 @@ pub fn wasmer_wat_to_wasm_ext(wat_code: String) -> Robj {
     }
 }
 
+
+
 extendr_module! {
     mod wasmer;
     fn wasmer_runtime_new;
@@ -525,4 +531,7 @@ extendr_module! {
     fn wasmer_math_example_ext;
     fn wasmer_hello_world_example_ext;
     fn wasmer_wat_to_wasm_ext;
+    fn wasmer_instantiate_with_math_imports_ext;
+    fn wasmer_call_function_safe_ext;
+    fn wasmer_host_function_example_ext;
 }

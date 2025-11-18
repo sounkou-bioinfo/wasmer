@@ -1600,6 +1600,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "extendr-api",
+ "once_cell",
  "serde_json",
  "wasmer 6.1.0",
 ]

@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 The `wasmer` package provides R bindings for the [Wasmer](https://wasmer.io/) WebAssembly runtime, allowing you to compile, instantiate, and execute WebAssembly modules directly from R. This opens up possibilities for high-performance computing, cross-language interoperability, and running untrusted code in a sandboxed environment.
 
-## Basic Usage
+##  Usage
 
 ### Initialize the Runtime
 
@@ -33,7 +33,7 @@ runtime <- wasmer_runtime_new()
 runtime
 ```
 
-### Math Operations
+### Math Operations compiled from Rust
 
 ```{r math-example}
 # Test basic math operations
@@ -45,7 +45,6 @@ stopifnot(math_result$add == 8)
 stopifnot(math_result$multiply == 15)
 ```
 
-## Advanced Usage
 
 ### Custom WebAssembly Modules
 
@@ -104,7 +103,7 @@ all_correct <- all(fibonacci_tests$calculated == fibonacci_tests$expected, na.rm
 stopifnot(all_correct)
 ```
 
-### Complex Example: Prime Number Checker
+###  Prime Number Checker
 
 ```{r prime-checker}
 # Define a prime number checker in WebAssembly
@@ -200,15 +199,7 @@ bench_results
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
-## Running Tests
 
-This README serves as both documentation and a test suite. To run the tests:
-
-```{r tests, eval=FALSE}
-# The chunks above serve as integration tests
-# For additional unit tests, run:
-tinytest::test_all(".")
-```
 
 
 ## WAT to WASM Binary Conversion and Binary Module Loading
@@ -235,6 +226,7 @@ result_bin <- wasmer_call_function_ext(runtime, "double_instance_bin", "double",
 stopifnot(result_bin$success)
 stopifnot(result_bin$values[[1]] == 42)
 ```
+
 
 ## LLM Usage Disclosure
 Code and documentation in this project have been generated with the assistance of the github Copilot LLM tools. While we have reviewed and edited the generated content, we acknowledge that LLM tools were used in the creation process and accordingly (since these models are trained on GPL code and other commons + proprietary software license is fake anyway) the code is released under GPL-3. So if you use this code in any way, you must comply with the GPL-3 license.

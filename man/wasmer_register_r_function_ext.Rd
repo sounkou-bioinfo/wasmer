@@ -2,7 +2,7 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_register_r_function_ext}
 \alias{wasmer_register_r_function_ext}
-\title{Register an R function for use as a host function in WASM.}
+\title{Register an R function for use as a host function in WASM (per-runtime)}
 \usage{
 wasmer_register_r_function_ext(ptr, name, fun)
 }
@@ -17,5 +17,5 @@ wasmer_register_r_function_ext(ptr, name, fun)
 TRUE if successful
 }
 \description{
-Register an R function for use as a host function in WASM.
+Register an R function for use as a host function in WASM (per-runtime)
 }

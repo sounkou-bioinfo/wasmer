@@ -4,14 +4,14 @@
 \alias{wasmer_math_example_ext}
 \title{Math operations example}
 \usage{
-wasmer_math_example_ext(runtime, a, b)
+wasmer_math_example_ext(ptr, a, b)
 }
 \arguments{
-\item{runtime}{External pointer to WasmerRuntime}
-
 \item{a}{First integer}
 
 \item{b}{Second integer}
+
+\item{runtime}{External pointer to WasmerRuntime}
 }
 \value{
 List with results of add and multiply

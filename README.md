@@ -13,7 +13,7 @@ This opens up possibilities for high-performance computing,
 cross-language interoperability, and running untrusted code in a
 sandboxed environment.
 
-## Basic Usage
+## Usage
 
 ### Initialize the Runtime
 
@@ -23,10 +23,10 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x582d087e41e0>
+#> <pointer: 0x5de32b781ea0>
 ```
 
-### Math Operations
+### Math Operations compiled from Rust
 
 ``` r
 # Test basic math operations
@@ -42,8 +42,6 @@ math_result
 stopifnot(math_result$add == 8)
 stopifnot(math_result$multiply == 15)
 ```
-
-## Advanced Usage
 
 ### Custom WebAssembly Modules
 
@@ -119,7 +117,7 @@ all_correct <- all(fibonacci_tests$calculated == fibonacci_tests$expected, na.rm
 stopifnot(all_correct)
 ```
 
-### Complex Example: Prime Number Checker
+### Prime Number Checker
 
 ``` r
 # Define a prime number checker in WebAssembly
@@ -236,21 +234,10 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.12µs   2.31µs   406186.        0B     40.6
-#> 2 r           25.92µs  27.77µs    35589.    23.1KB     39.2
+#> 1 wasm         2.09µs   2.31µs   402083.        0B     40.2
+#> 2 r           26.31µs  27.93µs    35465.    23.1KB     39.1
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
-```
-
-## Running Tests
-
-This README serves as both documentation and a test suite. To run the
-tests:
-
-``` r
-# The chunks above serve as integration tests
-# For additional unit tests, run:
-tinytest::test_all(".")
 ```
 
 ## WAT to WASM Binary Conversion and Binary Module Loading

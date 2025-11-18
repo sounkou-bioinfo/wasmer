@@ -2,9 +2,9 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_hello_world_example_ext}
 \alias{wasmer_hello_world_example_ext}
-\title{Simple Hello World WASM example}
+\title{Create a simple "Hello World" example}
 \usage{
-wasmer_hello_world_example_ext(runtime)
+wasmer_hello_world_example_ext(ptr)
 }
 \arguments{
 \item{runtime}{External pointer to WasmerRuntime}
@@ -13,5 +13,5 @@ wasmer_hello_world_example_ext(runtime)
 String result from WASM hello function
 }
 \description{
-Simple Hello World WASM example
+Create a simple "Hello World" example
 }

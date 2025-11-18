@@ -6,6 +6,9 @@
 \usage{
 wasmer_runtime_new()
 }
+\value{
+External pointer to WasmerRuntime
+}
 \description{
 Create a new Wasmer runtime for R. Returns an external pointer to the runtime object.
 }
