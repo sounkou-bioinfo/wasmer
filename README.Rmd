@@ -21,6 +21,12 @@ knitr::opts_chunk$set(
 
 The `wasmer` package provides R bindings for the [Wasmer](https://wasmer.io/) WebAssembly runtime, allowing you to compile, instantiate, and execute WebAssembly modules directly from R. This opens up possibilities for high-performance computing, cross-language interoperability, and running untrusted code in a sandboxed environment.
 
+## Installation
+This package uses {rextenr}, so you will need a rust installation
+
+```r
+remotes::install_github("sounkou-bioinfo/wasmer")
+```
 ##  Usage
 
 ### Initialize the Runtime
