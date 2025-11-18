@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 /// Memory management utilities for Wasmer instances
 pub struct WasmerMemoryManager {
+    #[allow(dead_code)]
     memories: HashMap<String, Memory>,
 }
 
@@ -13,6 +14,7 @@ impl WasmerMemoryManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn create_memory(&mut self, store: &mut Store, name: String, initial_pages: u32) -> std::result::Result<(), String> {
         let memory_type = MemoryType::new(Pages(initial_pages), None, false);
         match Memory::new(store, memory_type) {
@@ -24,10 +26,12 @@ impl WasmerMemoryManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_memory(&self, name: &str) -> Option<&Memory> {
         self.memories.get(name)
     }
 
+    #[allow(dead_code)]
     pub fn read_memory(&self, store: &Store, name: &str, offset: usize, length: usize) -> std::result::Result<Vec<u8>, String> {
         if let Some(memory) = self.get_memory(name) {
             let view = memory.view(store);
@@ -42,6 +46,7 @@ impl WasmerMemoryManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn write_memory(&self, store: &mut Store, name: &str, offset: usize, data: &[u8]) -> std::result::Result<(), String> {
         if let Some(memory) = self.get_memory(name) {
             let view = memory.view(store);

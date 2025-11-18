@@ -1,12 +1,3 @@
-wasmer: WebAssembly Runtime for R
-================
-
-- [wasmer: WebAssembly Runtime for R](#wasmer-webassembly-runtime-for-r)
-  - [Basic Usage](#basic-usage)
-  - [Advanced Usage](#advanced-usage)
-  - [Performance Comparison](#performance-comparison)
-  - [Running Tests](#running-tests)
-  - [LLM Usage Disclosure](#llm-usage-disclosure)
 
 # wasmer: WebAssembly Runtime for R
 
@@ -158,11 +149,11 @@ host_result
 #> [1] TRUE
 #> 
 #> $results
-#> $results$timestamp
-#> [1] 1763472279
-#> 
 #> $results$test_result
 #> [1] 25
+#> 
+#> $results$timestamp
+#> [1] 1763472971
 
 # Verify the host function example worked
 stopifnot(host_result$success == TRUE)

@@ -77,6 +77,7 @@ impl TypeConverter {
     }
 
     /// Get WebAssembly type from R value
+    #[allow(dead_code)]
     pub fn r_to_wasm_type(r_value: &Robj) -> std::result::Result<Type, String> {
         match r_value.rtype() {
             Rtype::Integers => Ok(Type::I32),
@@ -87,6 +88,7 @@ impl TypeConverter {
     }
 
     /// Validate that R arguments match expected WebAssembly function signature
+    #[allow(dead_code)]
     pub fn validate_args(r_args: &List, expected_types: &[Type]) -> std::result::Result<(), String> {
         if r_args.len() != expected_types.len() {
             return Err(format!(

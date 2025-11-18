@@ -1,9 +1,5 @@
 ---
-title: "wasmer: WebAssembly Runtime for R"
-output: 
-  github_document:
-    toc: true
-    toc_depth: 2
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
