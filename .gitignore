@@ -1,0 +1,38 @@
+# Rust build artifacts
+src/rust/vendor
+src/rust/target/
+src/.cargo/
+src/vendor/
+src/Makevars
+src/Makevars.win
+
+# R package build artifacts
+*.tar.gz
+*.Rcheck/
+man/
+README.html
+README.knit.md
+
+# R session files
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+*.Rproj
+
+# IDE and editor files
+.vscode/
+.idea/
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.#*
+#*#
+*.log
+
+# Original wasmer repo (if present)
+wasmer_repo/

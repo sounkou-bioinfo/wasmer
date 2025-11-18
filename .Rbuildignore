@@ -1,0 +1,48 @@
+# R package development files
+^.*\.Rproj$
+^\.Rproj\.user$
+^README\.Rmd$
+^README\.html$
+^README\.knit\.md$
+
+# Git and version control
+^\.git$
+^\.gitignore$
+
+# IDE files
+^\.vscode$
+^\.idea$
+
+# Rust development files
+^src/\.cargo$
+^src/rust/vendor$
+^src/rust/target$
+^src/rust/Cargo\.lock$
+^src/Makevars$
+^src/Makevars\.win$
+
+# Build artifacts
+^.*\.tar\.gz$
+^.*\.Rcheck$
+^Makefile$
+
+# External repo reference
+^wasmer_repo/.*$
+
+# Development scripts and tools
+^check_structure\.R$
+^test_runner\.R$
+
+# Documentation artifacts that shouldn't be in build
+^docs$
+^man/figures$
+
+# GitHub/CI files (if added later)
+^\.github$
+^\.travis\.yml$
+^appveyor\.yml$
+
+# Temporary and backup files
+~$
+^\.#
+^\#.*\#$

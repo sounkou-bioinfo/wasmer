@@ -1,0 +1,20 @@
+[package]
+name = 'wasmer'
+publish = false
+version = '0.1.0'
+edition = '2021'
+rust-version = '1.65'
+
+[lib]
+crate-type = [ 'staticlib' ]
+name = 'wasmer'
+
+[dependencies]
+extendr-api = '0.8.1'
+wasmer = { version = "6.1.0", features = ["cranelift", "compiler"] }
+anyhow = "1.0"
+serde_json = "1.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
