@@ -160,5 +160,49 @@ wasmer_memory_read_string_ext <- function(ptr, instance_name, memory_name, offse
 #' @export
 wasmer_memory_grow_ext <- function(ptr, instance_name, memory_name, pages) .Call(wrap__wasmer_memory_grow_ext, ptr, instance_name, memory_name, pages)
 
+#' Create a new WASM Table
+#' @param ptr External pointer to WasmerRuntime
+#' @param min Minimum size
+#' @param max Maximum size (optional)
+#' @return External pointer to Table
+#' @export
+wasmer_table_new_ext <- function(ptr, min, max) .Call(wrap__wasmer_table_new_ext, ptr, min, max)
+
+#' Set a function reference in a WASM Table
+#' @param ptr External pointer to WasmerRuntime
+#' @param table_ptr External pointer to Table
+#' @param index Index to set
+#' @param func_ptr External pointer to Function
+#' @return TRUE if successful
+#' @export
+wasmer_table_set_ext <- function(ptr, table_ptr, index, func_ptr) .Call(wrap__wasmer_table_set_ext, ptr, table_ptr, index, func_ptr)
+
+#' Grow a WASM Table
+#' @param ptr External pointer to WasmerRuntime
+#' @param table_ptr External pointer to Table
+#' @param delta Number of elements to grow
+#' @param func_ptr External pointer to Function to fill new slots
+#' @return Previous size
+#' @export
+wasmer_table_grow_ext <- function(ptr, table_ptr, delta, func_ptr) .Call(wrap__wasmer_table_grow_ext, ptr, table_ptr, delta, func_ptr)
+
+#' Get a function reference from a WASM Table
+#' @param ptr External pointer to WasmerRuntime
+#' @param table_ptr External pointer to Table
+#' @param index Index to get
+#' @return External pointer to Function (or NULL)
+#' @export
+wasmer_table_get_ext <- function(ptr, table_ptr, index) .Call(wrap__wasmer_table_get_ext, ptr, table_ptr, index)
+
+#' Create a Wasmer host function from an R function with dynamic signature
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @param arg_types Character vector of argument types (e.g. c("i32", "f64"))
+#' @param ret_types Character vector of return types (e.g. c("i32"))
+#' @param name Character string for registry name
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, name) .Call(wrap__wasmer_function_new_ext, ptr, rfun, arg_types, ret_types, name)
+
 
 # nolint end

@@ -1,4 +1,5 @@
 use wasmer::{Function, Store, Instance, FunctionEnv, FunctionEnvMut, Module, Value, imports, wat2wasm};
+use wasmer::{Table, TableType, Type};
 use once_cell::unsync::Lazy;
 use std::cell::RefCell;
 use extendr_api::prelude::*;
@@ -794,7 +795,6 @@ pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
     }
 }
 
-use wasmer::{Table, TableType, Type, Value};
 
 /// Create a new WASM Table
 /// @param ptr External pointer to WasmerRuntime
@@ -856,6 +856,101 @@ pub fn wasmer_table_get_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: 
     }
 }
 
+
+/// Create a Wasmer host function from an R function with dynamic signature
+/// @param ptr External pointer to WasmerRuntime
+/// @param rfun R function object
+/// @param arg_types Character vector of argument types (e.g. c("i32", "f64"))
+/// @param ret_types Character vector of return types (e.g. c("i32"))
+/// @param name Character string for registry name
+/// @return External pointer to Function
+/// @export
+#[extendr]
+pub fn wasmer_function_new_ext(
+    mut ptr: ExternalPtr<WasmerRuntime>,
+    rfun: Robj,
+    arg_types: Vec<String>,
+    ret_types: Vec<String>,
+    name: String
+) -> ExternalPtr<Function> {
+    let runtime = ptr.as_mut();
+    register_r_function(&name, rfun.clone());
+    let name_cloned = name.clone();
+    fn str_to_type(s: &str) -> Type {
+        match s.to_lowercase().as_str() {
+            "i32" => Type::I32,
+            "i64" => Type::I64,
+            "f32" => Type::F32,
+            "f64" => Type::F64,
+            _ => Type::I32,
+        }
+    }
+    let param_types: Vec<Type> = arg_types.iter().map(|s| str_to_type(s)).collect();
+    let result_types: Vec<Type> = ret_types.iter().map(|s| str_to_type(s)).collect();
+    let fn_type = wasmer::FunctionType::new(param_types.clone(), result_types.clone());
+    let fun = Function::new(
+        &mut runtime.store,
+        &fn_type,
+        move |args: &[Value]| -> std::result::Result<Vec<Value>, wasmer::RuntimeError> {
+            let r_args: Vec<Robj> = args.iter().map(|v| match v {
+                Value::I32(i) => r!(*i),
+                Value::I64(i) => r!(*i as i64),
+                Value::F32(f) => r!(*f as f32),
+                Value::F64(f) => r!(*f as f64),
+                _ => r!(0),
+            }).collect();
+            let result = R_FUNCTION_REGISTRY.with(|reg| {
+                reg.borrow().get(&name_cloned).cloned()
+            }).and_then(|rfun| {
+                rfun.call(pairlist!(r_args)).ok()
+            });
+            if let Some(r) = result {
+                if result_types.len() == 0 {
+                    Ok(vec![])
+                } else if result_types.len() == 1 {
+                    let v = match result_types[0] {
+                        Type::I32 => Value::I32(r.as_integer().unwrap_or(0)),
+                        Type::I64 => Value::I64(r.as_real().unwrap_or(0.0) as i64),
+                        Type::F32 => Value::F32(r.as_real().unwrap_or(0.0) as f32),
+                        Type::F64 => Value::F64(r.as_real().unwrap_or(0.0)),
+                        _ => Value::I32(0),
+                    };
+                    Ok(vec![v])
+                } else {
+                    // Multiple return values: expect R to return a list/vector
+                    let mut out = Vec::new();
+                    if let Some(list) = r.as_list() {
+                        for (i, ty) in result_types.iter().enumerate() {
+                            let rv = list.iter().nth(i).map(|(_, v)| v).unwrap_or(r!(0));
+                            let v = match ty {
+                                Type::I32 => Value::I32(rv.as_integer().unwrap_or(0)),
+                                Type::I64 => Value::I64(rv.as_real().unwrap_or(0.0) as i64),
+                                Type::F32 => Value::F32(rv.as_real().unwrap_or(0.0) as f32),
+                                Type::F64 => Value::F64(rv.as_real().unwrap_or(0.0)),
+                                _ => Value::I32(0),
+                            };
+                            out.push(v);
+                        }
+                        Ok(out)
+                    } else {
+                        let v = match result_types[0] {
+                            Type::I32 => Value::I32(r.as_integer().unwrap_or(0)),
+                            Type::I64 => Value::I64(r.as_real().unwrap_or(0.0) as i64),
+                            Type::F32 => Value::F32(r.as_real().unwrap_or(0.0) as f32),
+                            Type::F64 => Value::F64(r.as_real().unwrap_or(0.0)),
+                            _ => Value::I32(0),
+                        };
+                        Ok(vec![v])
+                    }
+                }
+            } else {
+                Ok(vec![Value::I32(0)])
+            }
+        }
+    );
+    ExternalPtr::new(fun)
+}
+
 extendr_module! {
     mod wasmer;
     fn wasmer_runtime_new;
@@ -881,4 +976,5 @@ extendr_module! {
     fn wasmer_table_set_ext;
     fn wasmer_table_grow_ext;
     fn wasmer_table_get_ext;
+    fn wasmer_function_new_ext;
 }

@@ -6,12 +6,12 @@
 [![extendr](https://img.shields.io/badge/extendr-%5E0.8.1-276DC2)](https://extendr.github.io/extendr/extendr_api/)
 <!-- badges: end -->
 
-The `wasmer` package provides R bindings for the
-[Wasmer](https://wasmer.io/) WebAssembly runtime, allowing you to
-compile, instantiate, and execute WebAssembly modules directly from R.
-This opens up possibilities for high-performance computing,
-cross-language interoperability, and running untrusted code in a
-sandboxed environment. This is a wip.
+The `wasmer` package provides R bindings for the `rust` based
+[Wasmer](https://github.com/wasmerio/wasmer) WebAssembly runtime,
+allowing you to compile, instantiate, and execute WebAssembly modules
+directly from R. This opens up possibilities for high-performance
+computing, cross-language interoperability, and running untrusted code
+in a sandboxed environment. This is a wip.
 
 ## Installation
 
@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5aa54b2441d0>
+#> <pointer: 0x5c544eabd630>
 ```
 
 ### Math Operations compiled from Rust
@@ -94,6 +94,9 @@ fib_r <- function(n) {
   if (n <= 1) return(n)
   return(fib_r(n-1) + fib_r(n-2))
 }
+# Loop version of R
+
+
 
 # Benchmark both implementations
 n_test <- 10L
@@ -109,8 +112,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.12µs   2.29µs   356412.    2.61KB     35.6
-#> 2 r           26.22µs  27.83µs    35072.   32.66KB     31.6
+#> 1 wasm         2.07µs   2.23µs   365485.    2.61KB     36.6
+#> 2 r           25.78µs  26.85µs    36298.   32.66KB     32.7
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
@@ -351,6 +354,11 @@ bytes <- wasmer_memory_read_ext(rt, "inst", "memory", 0, 3)
 print(bytes) # Should print raw vector: 41 42 43
 #> [1] 41 42 43
 
+# Grow memory by 1 page (64KiB)
+success <- wasmer_memory_grow_ext(rt, "inst", "memory", 1L)
+print(success) # Should print TRUE if memory was grown
+#> [1] TRUE
+
 # Read as string
 str <- wasmer_memory_read_string_ext(rt, "inst", "memory", 0, 3)
 print(str) # Should print "ABC"
@@ -366,7 +374,6 @@ This example demonstrates how to create, set, grow, and use a WASM table
 from R, matching the Python API flexibility.
 
 ``` r
-library(wasmer)
 
 # Create runtime
 rt <- wasmer_runtime_new()
@@ -386,31 +393,31 @@ wat <- ' (module
 )'
 
 wasmer_compile_wat_ext(rt, wat, "mod")
+#> [1] "Module 'mod' compiled successfully"
 wasmer_instantiate_ext(rt, "mod", "inst")
+#> [1] "Instance 'inst' created successfully"
 
 # Get the table from the instance
 table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
-
+Sys.setenv(RUST_BACKTRACE=1)
 # Create a host function (sum)
 host_sum <- function(x, y) as.integer(x + y)
-host_func <- wasmer_function_new_ext(rt, host_sum, c("i32", "i32"), "i32") # You need to implement this
-
-# Set table index 1 to host function
-wasmer_table_set_ext(rt, table_ptr, 1L, host_func)
-
-# Grow the table by 3, filling with host function
-wasmer_table_grow_ext(rt, table_ptr, 3L, host_func)
+# host_func <- wasmer_function_new_ext(rt, host_sum, c("i32", "i32"), c("i32"), "host_sum")
+# Set table index 1 to host function (SUPPORTED with static signature)
+# wasmer_table_set_ext(rt, table_ptr, 1L, host_func)
+# Grow the table by 3, filling with host function (SUPPORTED with static signature)
+# wasmer_table_grow_ext(rt, table_ptr, 3L, host_func)
+# Instead, use WASM-defined functions in tables, or host functions with explicit static signatures.
 
 # Call the WASM function via table
 result <- wasmer_call_function_ext(rt, "inst", "call_callback", list(1L, 2L, 7L))
 print(result$values[[1]]) # Should print 9 (host function sum)
+#> [1] 18
 
 result_default <- wasmer_call_function_ext(rt, "inst", "call_callback", list(0L, 2L, 7L))
 print(result_default$values[[1]]) # Should print 18 (default_fn)
+#> [1] 18
 ```
-
-This example shows generic table manipulation and indirect function
-calls, just like the Python API.
 
 ## LLM Usage Disclosure
 
