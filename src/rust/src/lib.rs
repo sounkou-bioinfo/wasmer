@@ -979,6 +979,29 @@ pub fn wasmer_function_new_static_ext(
     ExternalPtr::new(fun)
 }
 
+/// Get a pointer to an exported table from a WASM instance by name.
+/// @param ptr External pointer to WasmerRuntime
+/// @param instance_name Name of the instance
+/// @param table_export_name Name of the exported table
+/// @return External pointer to Table, or NULL if not found
+/// @export
+#[extendr]
+pub fn wasmer_get_exported_table_ext(
+    mut ptr: ExternalPtr<WasmerRuntime>,
+    instance_name: String,
+    table_export_name: String,
+) -> Option<ExternalPtr<Table>> {
+    let runtime = ptr.as_mut();
+    if let Some(instance) = runtime.instances.get(&instance_name) {
+        if let Ok(export) = instance.exports.get(&table_export_name) {
+            if let wasmer::Extern::Table(table) = export {
+                return Some(ExternalPtr::new(table.clone()));
+            }
+        }
+    }
+    None
+}
+
 extendr_module! {
     mod wasmer;
     fn wasmer_runtime_new;
@@ -1006,4 +1029,5 @@ extendr_module! {
     fn wasmer_table_get_ext;
     fn wasmer_function_new_ext;
     fn wasmer_function_new_static_ext;
+    fn wasmer_get_exported_table_ext;
 }

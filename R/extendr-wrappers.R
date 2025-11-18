@@ -213,5 +213,13 @@ wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, name) .Call
 #' @export
 wasmer_function_new_static_ext <- function(ptr, rfun, name) .Call(wrap__wasmer_function_new_static_ext, ptr, rfun, name)
 
+#' Get a pointer to an exported table from a WASM instance by name.
+#' @param ptr External pointer to WasmerRuntime
+#' @param instance_name Name of the instance
+#' @param table_export_name Name of the exported table
+#' @return External pointer to Table, or NULL if not found
+#' @export
+wasmer_get_exported_table_ext <- function(ptr, instance_name, table_export_name) .Call(wrap__wasmer_get_exported_table_ext, ptr, instance_name, table_export_name)
+
 
 # nolint end

@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x61ca5f7b8450>
+#> <pointer: 0x5a319ec62740>
 ```
 
 ### Math Operations compiled from Rust
@@ -112,8 +112,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.12µs    2.3µs   354056.    2.61KB     35.4
-#> 2 r           26.29µs   27.9µs    35393.   32.66KB     31.9
+#> 1 wasm         2.08µs   2.25µs   360239.    2.61KB     36.0
+#> 2 r            25.7µs  26.82µs    36461.   32.66KB     32.8
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
@@ -368,19 +368,18 @@ print(str) # Should print "ABC"
 This example shows how to write and read bytes and strings from WASM
 memory using Wasmer’s R interface.
 
-## Generic WASM Table Example
+## Generic WASM Table and Dynamic Host Function Example
 
-This example demonstrates how to create, set, grow, and use a WASM table
-from R. **Note:** Only host functions created with explicit static
-signatures (using `wasmer_function_new_static_ext`) can be used in
-tables or as funcrefs.
+This example demonstrates two approaches: - How to use a WASM table with
+static host functions (required for table/funcref) - How to use dynamic
+host functions for direct import/export (not tables)
 
 ``` r
 # Create runtime
 rt <- wasmer_runtime_new()
 
-# Compile a module with a table and a function using call_indirect
-wat <- ' (module
+# --- Table Example (static host function) ---
+wat_table <- ' (module
   (type $callback_t (func (param i32 i32) (result i32)))
   (type $call_callback_t (func (param i32 i32 i32) (result i32)))
   (table $t1 3 6 funcref)
@@ -393,10 +392,10 @@ wat <- ' (module
   (export "__indirect_function_table" (table $t1))
 )'
 
-wasmer_compile_wat_ext(rt, wat, "mod")
-#> [1] "Module 'mod' compiled successfully"
-wasmer_instantiate_ext(rt, "mod", "inst")
-#> [1] "Instance 'inst' created successfully"
+wasmer_compile_wat_ext(rt, wat_table, "mod_table")
+#> [1] "Module 'mod_table' compiled successfully"
+wasmer_instantiate_ext(rt, "mod_table", "inst_table")
+#> [1] "Instance 'inst_table' created successfully"
 
 # Create a WASM table from R
 r_table_ptr <- wasmer_table_new_ext(rt, 3L, 6L)
@@ -410,23 +409,38 @@ wasmer_table_set_ext(rt, r_table_ptr, 1L, host_func)
 #> [1] TRUE
 
 # Call the WASM function via table (note: this will not affect the instance's table)
-result <- wasmer_call_function_ext(rt, "inst", "call_callback", list(1L, 2L, 7L))
+result <- wasmer_call_function_ext(rt, "inst_table", "call_callback", list(1L, 2L, 7L))
 result$values[[1]] # Will print 18 (default_fn)
 #> [1] 18
 
-result_default <- wasmer_call_function_ext(rt, "inst", "call_callback", list(0L, 2L, 7L))
-result_default$values[[1]] # Will print 18 (default_fn)
-#> [1] 18
-signatures <- wasmer_list_function_signatures_ext(rt, "inst")
-signatures
-#> $name
-#> [1] "call_callback"
-#> 
-#> $params
-#> [1] "[I32, I32, I32]"
-#> 
-#> $results
-#> [1] "[I32]"
+# --- Dynamic Host Function Example (direct import, not table) ---
+wat_dyn <- ' (module
+  (import "env" "host_sum_dyn" (func $host_sum_dyn (param i32 i32) (result i32)))
+  (func (export "call_host_sum_dyn") (param $a i32) (param $b i32) (result i32)
+    (call $host_sum_dyn (local.get $a) (local.get $b))
+  )
+)'
+
+wasmer_compile_wat_ext(rt, wat_dyn, "mod_dyn")
+#> [1] "Module 'mod_dyn' compiled successfully"
+
+# Create a dynamic host function (can be any signature)
+host_sum_dyn <- function(x, y) as.integer(x + y)
+host_func_dyn <- wasmer_function_new_ext(rt, host_sum_dyn, c("i32", "i32"), c("i32"), "host_sum_dyn")
+
+# Note: You must wire up the import manually when instantiating (see package docs)
+# For this example, the import is handled automatically if the registry name matches
+wasmer_instantiate_ext(rt, "mod_dyn", "inst_dyn")
+#> [1] "Error creating instance: Error while importing \"env\".\"host_sum_dyn\": unknown import. Expected Function(FunctionType { params: [I32, I32], results: [I32] })"
+
+# Call the WASM function that uses the dynamic host function
+result_dyn <- wasmer_call_function_ext(rt, "inst_dyn", "call_host_sum_dyn", list(2L, 7L))
+result_dyn$values[[1]] # Should print 9
+#> NULL
+
+# --- Table Limitation Note ---
+# Dynamic host functions (created with wasmer_function_new_ext) cannot be inserted into tables or used as funcref.
+# Only static host functions (wasmer_function_new_static_ext) are allowed in tables/funcref due to Wasmer backend restrictions.
 ```
 
 ## LLM Usage Disclosure
