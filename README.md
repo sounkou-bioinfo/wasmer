@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x60951201cea0>
+#> <pointer: 0x6471543ad4e0>
 ```
 
 ### Math Operations compiled from Rust
@@ -242,10 +242,38 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.09µs   2.28µs   409814.        0B     41.0
-#> 2 r           25.71µs  26.75µs    36802.    23.1KB     40.5
+#> 1 wasm         2.13µs   2.31µs   402933.        0B     40.3
+#> 2 r           26.21µs  27.32µs    36086.    23.1KB     39.7
 # Verify results match
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
+```
+
+## Inspect Exported Function Signatures
+
+``` r
+# After instantiating a module, you can inspect its exported function signatures
+signatures <- wasmer_list_function_signatures_ext(runtime, "fib_instance")
+print(signatures)
+#> $name
+#> [1] "fibonacci"
+#> 
+#> $params
+#> [1] "[I32]"
+#> 
+#> $results
+#> [1] "[I32]"
+
+# You can also inspect other instances
+signatures_prime <- wasmer_list_function_signatures_ext(runtime, "prime_instance")
+print(signatures_prime)
+#> $name
+#> [1] "is_prime"
+#> 
+#> $params
+#> [1] "[I32]"
+#> 
+#> $results
+#> [1] "[I32]"
 ```
 
 ## WAT to WASM Binary Conversion and Binary Module Loading
@@ -298,34 +326,6 @@ compile_result
 #> [1] "Module 'rhost_module' compiled successfully"
 result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", list(21L))
 stopifnot(result$values[[1]] == 42)
-```
-
-## Inspect Exported Function Signatures
-
-``` r
-# After instantiating a module, you can inspect its exported function signatures
-signatures <- wasmer_list_function_signatures_ext(runtime, "fib_instance")
-print(signatures)
-#> $name
-#> [1] "fibonacci"
-#> 
-#> $params
-#> [1] "[I32]"
-#> 
-#> $results
-#> [1] "[I32]"
-
-# You can also inspect other instances
-signatures_prime <- wasmer_list_function_signatures_ext(runtime, "prime_instance")
-print(signatures_prime)
-#> $name
-#> [1] "is_prime"
-#> 
-#> $params
-#> [1] "[I32]"
-#> 
-#> $results
-#> [1] "[I32]"
 ```
 
 ## LLM Usage Disclosure

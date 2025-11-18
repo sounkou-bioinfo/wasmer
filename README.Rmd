@@ -206,6 +206,17 @@ stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
 
+## Inspect Exported Function Signatures
+
+```{r exported-signatures}
+# After instantiating a module, you can inspect its exported function signatures
+signatures <- wasmer_list_function_signatures_ext(runtime, "fib_instance")
+print(signatures)
+
+# You can also inspect other instances
+signatures_prime <- wasmer_list_function_signatures_ext(runtime, "prime_instance")
+print(signatures_prime)
+```
 
 
 ## WAT to WASM Binary Conversion and Binary Module Loading
@@ -259,17 +270,6 @@ result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", l
 stopifnot(result$values[[1]] == 42)
 ```
 
-## Inspect Exported Function Signatures
-
-```{r exported-signatures}
-# After instantiating a module, you can inspect its exported function signatures
-signatures <- wasmer_list_function_signatures_ext(runtime, "fib_instance")
-print(signatures)
-
-# You can also inspect other instances
-signatures_prime <- wasmer_list_function_signatures_ext(runtime, "prime_instance")
-print(signatures_prime)
-```
 
 ## LLM Usage Disclosure
 Code and documentation in this project have been generated with the assistance of the github Copilot LLM tools. While we have reviewed and edited the generated content, we acknowledge that LLM tools were used in the creation process and accordingly (since these models are trained on GPL code and other commons + proprietary software license is fake anyway) the code is released under GPL-3. So if you use this code in any way, you must comply with the GPL-3 license.
