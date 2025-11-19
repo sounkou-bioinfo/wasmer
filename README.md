@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5aeb279bf8f0>
+#> <pointer: 0x5a028e087260>
 ```
 
 ### Compiler Selection
@@ -169,32 +169,48 @@ exports
 stopifnot(exports$success == TRUE)
 stopifnot("fibonacci" %in% exports$exports)
 
-# Native R fibonacci implementation 
+# Native R fibonacci implementations
+# Naive recursive (grows stack)
 fib_r <- function(n) {
   if (n <= 1) return(n)
   return(fib_r(n-1) + fib_r(n-2))
 }
-# Loop version of R
 
+# Tail-recursive using Tailcall (R >= 4.6.0, doesn't grow stack)
+fib_tailcall <- function(n) {
+  fib_iter <- function(a, b, count) {
+    if (count == 0) {
+      a
+    } else {
+      # Force evaluation to avoid deferred computations
+      new_a <- b
+      new_b <- a + b
+      Tailcall(fib_iter, new_a, new_b, count - 1)
+    }
+  }
+  fib_iter(0L, 1L, n)
+}
 
-
-# Benchmark both implementations
-n_test <- 10L
+# Benchmark all three implementations
+n_test <- 20L
 
 bench_results <- bench::mark(
   wasm = wasmer_call_function_ext(runtime, "fib_instance", "fibonacci", list(n_test))$values[[1]],
-  r = fib_r(n_test),
+  r_naive = fib_r(n_test),
+  r_tailcall = fib_tailcall(n_test),
   check = FALSE,
-  min_iterations = 5
+  min_iterations = 10
 )
 
 bench_results
-#> # A tibble: 2 × 6
+#> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.13µs   2.33µs   360896.        0B     36.1
-#> 2 r           26.35µs  27.87µs    35269.    32.7KB     31.8
-stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
+#> 1 wasm        25.63µs  26.72µs    36423.        0B      0  
+#> 2 r_naive      3.34ms   3.44ms      290.    32.7KB     35.1
+#> 3 r_tailcall   10.7µs  11.45µs    83269.        0B     41.7
+stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
+stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
 
 ### Calculate Fibonacci Numbers
