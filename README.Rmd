@@ -39,6 +39,37 @@ runtime <- wasmer_runtime_new()
 runtime
 ```
 
+### Compiler Selection
+
+You can choose the compiler backend when initializing the runtime. Supported compilers are `cranelift` (default, fast compilation) and `singlepass` (fastest compilation, linear time, good for blockchains/gas metering).
+
+```{r init-compiler}
+# Initialize with Cranelift (default)
+rt_cranelift <- wasmer_runtime_new_with_compiler_ext("cranelift")
+
+# Initialize with Singlepass
+rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
+```
+
+### WASI Support
+
+The package supports WASI (WebAssembly System Interface), allowing WASM modules to access system resources like files, environment variables, and clocks (if permitted).
+
+```{r wasi}
+# Create a runtime
+rt_wasi <- wasmer_runtime_new()
+
+# Create a WASI environment for a specific module name
+# This must be done BEFORE instantiating the module
+# It sets up stdout/stderr capture and other WASI imports
+wasmer_wasi_state_new_ext(rt_wasi, "wasi_module")
+
+# Compile and instantiate a module that uses WASI
+# (Assuming you have a WASI-compliant WASM file or WAT)
+# wasmer_compile_wasm_ext(rt_wasi, wasm_bytes, "wasi_module")
+# wasmer_instantiate_ext(rt_wasi, "wasi_module", "wasi_instance")
+```
+
 ### Math Operations compiled from Rust
 
 ```{r math-example}
@@ -370,11 +401,18 @@ wasmer_instantiate_ext(rt, "mod_dyn", "inst_dyn")
 result_dyn <- wasmer_call_function_ext(rt, "inst_dyn", "call_host_sum_dyn", list(2L, 7L))
 result_dyn$values[[1]] # Should print 9
 
-# --- Table Limitation Note ---
-# Dynamic host functions (created with wasmer_function_new_ext) cannot be inserted into tables or used as funcref.
-# Only static host functions (wasmer_function_new_static_ext, macro-generated for supported signatures) are allowed in tables/funcref due to Wasmer backend restrictions.
-# See the package source for the list of supported static signatures and how to extend them via macros.
 ```
+
+> [!IMPORTANT]
+> **Dynamic vs Static Host Functions & Tables**
+> 
+> There is a known limitation ("pending issue") regarding **Dynamic Host Functions** (`wasmer_function_new_ext`) and WASM Tables (`funcref`).
+> 
+> - **Dynamic Host Functions**: Created with `wasmer_function_new_ext`. These are flexible and can have any signature, but they **CANNOT** be inserted into WASM Tables or used as `funcref`. Attempting to do so will fail or cause runtime errors because they lack the necessary typed trampoline at the engine level.
+> - **Static Host Functions**: Created with `wasmer_function_new_static_ext` (or typed variants like `wasmer_function_new_i32_to_i32`). These have fixed signatures known at compile time. These **CAN** be inserted into Tables and used as `funcref`.
+>
+> If you need to use host functions in a Table (e.g., for indirect calls), you **MUST** use the static variants.
+
 
 ## LLM Usage Disclosure
 Code and documentation in this project have been generated with the assistance of the github Copilot LLM tools. While we have reviewed and edited the generated content, we acknowledge that LLM tools were used in the creation process and accordingly (since these models are trained on GPL code and other commons + proprietary software license is fake anyway) the code is released under GPL-3. So if you use this code in any way, you must comply with the GPL-3 license.

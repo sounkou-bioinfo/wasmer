@@ -4,14 +4,12 @@
 \alias{wasmer_function_new_f64_f64_to_f64}
 \title{Create a Wasmer host function from an R function with static signature (f64, f64) -> f64}
 \usage{
-wasmer_function_new_f64_f64_to_f64(ptr, rfun, name)
+wasmer_function_new_f64_f64_to_f64(ptr, rfun)
 }
 \arguments{
 \item{ptr}{External pointer to WasmerRuntime}
 
 \item{rfun}{R function object}
-
-\item{name}{Character string for registry name}
 }
 \value{
 External pointer to Function

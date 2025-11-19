@@ -31,7 +31,44 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x617d695df800>
+#> <pointer: 0x5d22fb650bb0>
+```
+
+### Compiler Selection
+
+You can choose the compiler backend when initializing the runtime.
+Supported compilers are `cranelift` (default, fast compilation) and
+`singlepass` (fastest compilation, linear time, good for blockchains/gas
+metering).
+
+``` r
+# Initialize with Cranelift (default)
+rt_cranelift <- wasmer_runtime_new_with_compiler_ext("cranelift")
+
+# Initialize with Singlepass
+rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
+```
+
+### WASI Support
+
+The package supports WASI (WebAssembly System Interface), allowing WASM
+modules to access system resources like files, environment variables,
+and clocks (if permitted).
+
+``` r
+# Create a runtime
+rt_wasi <- wasmer_runtime_new()
+
+# Create a WASI environment for a specific module name
+# This must be done BEFORE instantiating the module
+# It sets up stdout/stderr capture and other WASI imports
+wasmer_wasi_state_new_ext(rt_wasi, "wasi_module")
+#> [1] TRUE
+
+# Compile and instantiate a module that uses WASI
+# (Assuming you have a WASI-compliant WASM file or WAT)
+# wasmer_compile_wasm_ext(rt_wasi, wasm_bytes, "wasi_module")
+# wasmer_instantiate_ext(rt_wasi, "wasi_module", "wasi_instance")
 ```
 
 ### Math Operations compiled from Rust
@@ -112,8 +149,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.11µs   2.29µs   358608.    2.61KB     35.9
-#> 2 r           26.16µs  27.36µs    35987.   32.66KB     32.4
+#> 1 wasm         2.09µs   2.27µs   369143.    2.61KB     36.9
+#> 2 r            25.7µs     27µs    36051.   32.66KB     32.5
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
@@ -440,12 +477,26 @@ wasmer_instantiate_ext(rt, "mod_dyn", "inst_dyn")
 result_dyn <- wasmer_call_function_ext(rt, "inst_dyn", "call_host_sum_dyn", list(2L, 7L))
 result_dyn$values[[1]] # Should print 9
 #> NULL
-
-# --- Table Limitation Note ---
-# Dynamic host functions (created with wasmer_function_new_ext) cannot be inserted into tables or used as funcref.
-# Only static host functions (wasmer_function_new_static_ext, macro-generated for supported signatures) are allowed in tables/funcref due to Wasmer backend restrictions.
-# See the package source for the list of supported static signatures and how to extend them via macros.
 ```
+
+> \[!IMPORTANT\] **Dynamic vs Static Host Functions & Tables**
+>
+> There is a known limitation (“pending issue”) regarding **Dynamic Host
+> Functions** (`wasmer_function_new_ext`) and WASM Tables (`funcref`).
+>
+> - **Dynamic Host Functions**: Created with `wasmer_function_new_ext`.
+>   These are flexible and can have any signature, but they **CANNOT**
+>   be inserted into WASM Tables or used as `funcref`. Attempting to do
+>   so will fail or cause runtime errors because they lack the necessary
+>   typed trampoline at the engine level.
+> - **Static Host Functions**: Created with
+>   `wasmer_function_new_static_ext` (or typed variants like
+>   `wasmer_function_new_i32_to_i32`). These have fixed signatures known
+>   at compile time. These **CAN** be inserted into Tables and used as
+>   `funcref`.
+>
+> If you need to use host functions in a Table (e.g., for indirect
+> calls), you **MUST** use the static variants.
 
 ## LLM Usage Disclosure
 

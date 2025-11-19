@@ -4,7 +4,7 @@
 \alias{wasmer_function_new_ext}
 \title{Create a Wasmer host function from an R function with dynamic signature}
 \usage{
-wasmer_function_new_ext(ptr, rfun, arg_types, ret_types, name)
+wasmer_function_new_ext(ptr, rfun, arg_types, ret_types, `_name`)
 }
 \arguments{
 \item{ptr}{External pointer to WasmerRuntime}

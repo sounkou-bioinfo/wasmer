@@ -5,7 +5,7 @@
 \title{Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
 This is required for WASM tables and funcref use.}
 \usage{
-wasmer_function_new_static_ext(ptr, rfun, name)
+wasmer_function_new_static_ext(ptr, rfun, `_name`)
 }
 \arguments{
 \item{ptr}{External pointer to WasmerRuntime}

@@ -4,14 +4,12 @@
 \alias{wasmer_function_new_i32_i32_to_i32}
 \title{Create a Wasmer host function from an R function with static signature (i32, i32) -> i32}
 \usage{
-wasmer_function_new_i32_i32_to_i32(ptr, rfun, name)
+wasmer_function_new_i32_i32_to_i32(ptr, rfun)
 }
 \arguments{
 \item{ptr}{External pointer to WasmerRuntime}
 
 \item{rfun}{R function object}
-
-\item{name}{Character string for registry name}
 }
 \value{
 External pointer to Function

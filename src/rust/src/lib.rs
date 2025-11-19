@@ -1,14 +1,32 @@
 use wasmer::{Function, Store, Instance, FunctionEnv, FunctionEnvMut, Module, Value, imports, wat2wasm};
 use wasmer::{Table, TableType, Type};
-use once_cell::unsync::Lazy;
+use once_cell::sync::Lazy;
 use std::cell::RefCell;
 use extendr_api::prelude::*;
 use extendr_api::wrapper::ExternalPtr;
 use std::collections::HashMap;
-use wasmer::AsStoreRef;
+use wasmer::{AsStoreRef, AsStoreMut};
+use wasmer::sys::EngineBuilder;
+use std::sync::atomic::{AtomicU32, Ordering};
+use wasmer_wasix::WasiFunctionEnv;
+
 thread_local! {
-    static R_FUNCTION_REGISTRY: Lazy<RefCell<HashMap<String, Robj>>> =
+    static R_FUNCTION_REGISTRY: Lazy<RefCell<HashMap<u32, Robj>>> =
         Lazy::new(|| RefCell::new(HashMap::new()));
+}
+
+static TOKIO_RUNTIME: Lazy<tokio::runtime::Runtime> = Lazy::new(|| {
+    tokio::runtime::Runtime::new().unwrap()
+});
+
+static NEXT_ID: AtomicU32 = AtomicU32::new(1);
+
+fn register_r_function_internal(fun: Robj) -> u32 {
+    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+    R_FUNCTION_REGISTRY.with(|reg| {
+        reg.borrow_mut().insert(id, fun);
+    });
+    id
 }
 
 fn read_string_from_memory(instance: &Instance, store: &wasmer::StoreRef, ptr: i32, len: i32) -> Option<String> {
@@ -42,45 +60,38 @@ pub struct WasmerEnv {
     pub instance: Option<Instance>,
 }
 
-pub fn register_r_function(name: &str, fun: Robj) {
-    R_FUNCTION_REGISTRY.with(|reg| {
-        reg.borrow_mut().insert(name.to_string(), fun);
-    });
+// Deprecated: register_r_function with name is no longer used internally in the same way
+// Keeping it for compatibility if needed, but we will likely remove it or change it.
+// For now, we just ignore the name and register it.
+pub fn register_r_function(_name: &str, fun: Robj) {
+    register_r_function_internal(fun);
 }
 
+
 pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut Store) -> Function {
-    Function::new_typed_with_env(store, env, |mut env: FunctionEnvMut<WasmerEnv>, name_ptr: i32, name_len: i32, argc: i32, args_ptr: i32| -> i32 {
-        let (data, store_mut) = env.data_and_store_mut();
-        let instance = match &data.instance {
-            Some(inst) => inst,
+    Function::new_typed_with_env(store, env, |mut env: FunctionEnvMut<WasmerEnv>, handle: i32, args_ptr: i32, argc: i32| -> i32 {
+        let _store_mut = env.as_store_mut();
+        let (env_data, store_mut) = env.data_and_store_mut();
+        let instance = match env_data.instance.as_ref() {
+            Some(i) => i,
             None => return 0,
         };
         let store_ref = store_mut.as_store_ref();
-        // Read function name
-        let func_name = match read_string_from_memory(instance, &store_ref, name_ptr, name_len) {
-            Some(s) => s,
-            None => return 0,
-        };
+        
         // Read arguments
         let args = read_i32_args_from_memory(instance, &store_ref, args_ptr, argc);
-        // Diagnostics: print function name and arguments
-        rprintln!("[wasmer] Host call: func_name='{}', args={:?}", func_name, args);
-        // Print registry contents
-        R_FUNCTION_REGISTRY.with(|reg| {
-            let keys: Vec<String> = reg.borrow().keys().cloned().collect();
-            rprintln!("[wasmer] Registry keys: {:?}", keys);
-        });
+        // Diagnostics
+        rprintln!("[wasmer] Host call: handle={}, args={:?}", handle, args);
+        
         // Lookup and call R function
         let result = R_FUNCTION_REGISTRY.with(|reg| {
-            reg.borrow().get(&func_name).cloned()
+            reg.borrow().get(&(handle as u32)).cloned()
         }).and_then(|rfun| {
-            rprintln!("[wasmer] Found R function for '{}', calling...", func_name);
+            rprintln!("[wasmer] Found R function for handle {}, calling...", handle);
             if args.len() == 1 {
-                rprintln!("[wasmer] Calling with single arg: {:?}", args[0]);
                 rfun.call(pairlist!(args[0])).ok()
             } else {
                 let r_args = args.clone().into_iter().map(|x| r!(x)).collect::<Vec<Robj>>();
-                rprintln!("[wasmer] Calling with arg list: {:?}", r_args);
                 rfun.call(pairlist!(r_args)).ok()
             }
         });
@@ -90,10 +101,10 @@ pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut 
                 rprintln!("[wasmer] Returning integer value: {}", val);
                 return val;
             } else {
-                rprintln!("[wasmer] R function '{}' did not return an integer: {:?}", func_name, r);
+                rprintln!("[wasmer] R function for handle {} did not return an integer: {:?}", handle, r);
             }
         } else {
-            rprintln!("[wasmer] R function '{}' not found or call failed.", func_name);
+            rprintln!("[wasmer] R function for handle {} not found or call failed.", handle);
         }
         0 // fallback
     })
@@ -104,10 +115,14 @@ pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut 
 mod memory;
 mod host_functions;
 mod type_converter;
+mod wasi_utils;
+mod compiler_utils;
 
 use memory::WasmerMemoryManager;
 use host_functions::WasmerHostFunctions;
 use type_converter::TypeConverter;
+use wasi_utils::WasiUtils;
+use compiler_utils::CompilerUtils;
 
 /// Helper function to convert Wasm values to R values
 fn convert_wasm_values_to_r(values: Box<[Value]>) -> Robj {
@@ -137,6 +152,7 @@ pub struct WasmerRuntime {
     env: Option<FunctionEnv<WasmerEnv>>,
     #[allow(dead_code)]
     memory_manager: WasmerMemoryManager,
+    wasi_env: Option<WasiFunctionEnv>,
 }
 
 impl WasmerRuntime {
@@ -148,6 +164,7 @@ impl WasmerRuntime {
             r_function_registry: HashMap::new(),
             env: None,
             memory_manager: WasmerMemoryManager::new(),
+            wasi_env: None,
         }
     }
 }
@@ -172,16 +189,38 @@ fn wasmer_compile_wat(runtime: &mut WasmerRuntime, wat_code: String, module_name
 fn wasmer_instantiate(runtime: &mut WasmerRuntime, module_name: String, instance_name: String) -> String {
     if let Some(module) = runtime.modules.get(&module_name) {
         let env = FunctionEnv::new(&mut runtime.store, WasmerEnv { instance: None });
-        let import_object = imports! {
+        let mut import_object = imports! {
             "env" => {
                 "r_host_call" => create_generic_r_host_function(&env, &mut runtime.store),
             }
         };
+        
+        // Add WASI imports if enabled
+        if let Some(wasi_env) = &runtime.wasi_env {
+            let wasi_imports = wasi_env.import_object(&mut runtime.store, module).unwrap_or_else(|_| imports! {});
+            // Merge imports - this is a bit tricky with the imports! macro structure
+            // For now, we'll just extend the import object if possible or create a new one
+            // Wasmer's ImportObject can be extended
+            import_object.extend(&wasi_imports);
+        }
+
         match Instance::new(&mut runtime.store, module, &import_object) {
             Ok(final_instance) => {
                 env.as_mut(&mut runtime.store).instance = Some(final_instance.clone());
                 runtime.instances.insert(instance_name.clone(), final_instance.clone());
                 runtime.env = Some(env);
+                
+                // Initialize WASI if present
+                if let Some(wasi_env) = &runtime.wasi_env {
+                     // wasmer-wasix handles initialization automatically on first call usually, 
+                     // but we might need to call initialize explicitly if we want to be sure.
+                     // For now, let's assume it works as is.
+                     match wasi_env.clone().initialize(&mut runtime.store, final_instance.clone()) {
+                        Ok(_) => {},
+                        Err(e) => return format!("Error initializing WASI: {}", e),
+                     }
+                }
+                
                 format!("Instance '{}' created successfully", instance_name)
             }
             Err(e) => format!("Error creating instance: {}", e),
@@ -556,6 +595,58 @@ pub fn wasmer_runtime_new() -> ExternalPtr<WasmerRuntime> {
     ExternalPtr::new(WasmerRuntime::new())
 }
 
+/// Create a new Wasmer runtime with a specific compiler.
+/// @param compiler_name Name of the compiler ("cranelift", "singlepass")
+/// @return External pointer to WasmerRuntime
+/// @export
+#[extendr]
+pub fn wasmer_runtime_new_with_compiler_ext(compiler_name: String) -> ExternalPtr<WasmerRuntime> {
+    let compiler_config = match CompilerUtils::get_compiler_config(&compiler_name) {
+        Ok(c) => c,
+        Err(e) => {
+            rprintln!("Error getting compiler config: {}", e);
+            return ExternalPtr::new(WasmerRuntime::new()); // Fallback to default
+        }
+    };
+    // Note: WasmerRuntime::new() uses Store::default(). We need a way to pass the compiler.
+    // We'll modify WasmerRuntime::new to accept an optional compiler config or create a new constructor.
+    // Since WasmerRuntime struct definition is simple, we can just create it here.
+    let engine = EngineBuilder::new(compiler_config).engine();
+    let store = Store::new(engine);
+    let runtime = WasmerRuntime {
+        store,
+        modules: HashMap::new(),
+        instances: HashMap::new(),
+        r_function_registry: HashMap::new(),
+        env: None,
+        memory_manager: WasmerMemoryManager::new(),
+        wasi_env: None,
+    };
+    ExternalPtr::new(runtime)
+}
+
+/// Create a WASI state for the runtime.
+/// @param ptr External pointer to WasmerRuntime
+/// @param module_name Name of the module (for WASI args)
+/// @return TRUE if successful, FALSE otherwise
+/// @export
+#[extendr]
+pub fn wasmer_wasi_state_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String) -> bool {
+    let runtime = ptr.as_mut();
+    let _guard = TOKIO_RUNTIME.enter();
+    match WasiUtils::create_wasi_env(&mut runtime.store, &module_name) {
+        Ok(env) => {
+            runtime.wasi_env = Some(env);
+            true
+        }
+        Err(e) => {
+            rprintln!("Error creating WASI state: {}", e);
+            false
+        }
+    }
+}
+
+
 /// Compile a WAT (WebAssembly Text) module and add it to the runtime.
 /// @param ptr External pointer to WasmerRuntime
 /// @param wat_code WAT code as a string
@@ -871,11 +962,10 @@ pub fn wasmer_function_new_ext(
     rfun: Robj,
     arg_types: Vec<String>,
     ret_types: Vec<String>,
-    name: String
+    _name: String
 ) -> ExternalPtr<Function> {
     let runtime = ptr.as_mut();
-    register_r_function(&name, rfun.clone());
-    let name_cloned = name.clone();
+    let id = register_r_function_internal(rfun);
     fn str_to_type(s: &str) -> Type {
         match s.to_lowercase().as_str() {
             "i32" => Type::I32,
@@ -900,7 +990,7 @@ pub fn wasmer_function_new_ext(
                 _ => r!(0),
             }).collect();
             let result = R_FUNCTION_REGISTRY.with(|reg| {
-                reg.borrow().get(&name_cloned).cloned()
+                reg.borrow().get(&id).cloned()
             }).and_then(|rfun| {
                 rfun.call(pairlist!(r_args)).ok()
             });
@@ -962,15 +1052,14 @@ pub fn wasmer_function_new_ext(
 pub fn wasmer_function_new_static_ext(
     mut ptr: ExternalPtr<WasmerRuntime>,
     rfun: Robj,
-    name: String
+    _name: String
 ) -> ExternalPtr<Function> {
     let runtime = ptr.as_mut();
-    register_r_function(&name, rfun.clone());
-    let name_cloned = name.clone();
+    let id = register_r_function_internal(rfun);
     // Only supports (i32, i32) -> i32 for now
     let fun = Function::new_typed(&mut runtime.store, move |x: i32, y: i32| -> i32 {
         let result = R_FUNCTION_REGISTRY.with(|reg| {
-            reg.borrow().get(&name_cloned).cloned()
+            reg.borrow().get(&id).cloned()
         }).and_then(|rfun| {
             rfun.call(pairlist!(r!(x), r!(y))).ok()
         });
@@ -1003,27 +1092,25 @@ pub fn wasmer_get_exported_table_ext(
 }
 
 // Macro to generate static R host function wrappers for common signatures
+// Macro to generate static R host function wrappers for common signatures
 macro_rules! impl_r_host_function {
     // (i32) -> i32
     ($fn_name:ident, i32, i32) => {
         /// Create a Wasmer host function from an R function with static signature (i32) -> i32
         /// @param ptr External pointer to WasmerRuntime
         /// @param rfun R function object
-        /// @param name Character string for registry name
         /// @return External pointer to Function
         /// @export
         #[extendr]
         pub fn $fn_name(
             mut ptr: ExternalPtr<WasmerRuntime>,
-            rfun: Robj,
-            name: String
+            rfun: Robj
         ) -> ExternalPtr<Function> {
             let runtime = ptr.as_mut();
-            register_r_function(&name, rfun.clone());
-            let name_cloned = name.clone();
+            let id = register_r_function_internal(rfun);
             let fun = Function::new_typed(&mut runtime.store, move |x: i32| -> i32 {
                 let result = R_FUNCTION_REGISTRY.with(|reg| {
-                    reg.borrow().get(&name_cloned).cloned()
+                    reg.borrow().get(&id).cloned()
                 }).and_then(|rfun| {
                     rfun.call(pairlist!(r!(x))).ok()
                 });
@@ -1037,21 +1124,18 @@ macro_rules! impl_r_host_function {
         /// Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
         /// @param ptr External pointer to WasmerRuntime
         /// @param rfun R function object
-        /// @param name Character string for registry name
         /// @return External pointer to Function
         /// @export
         #[extendr]
         pub fn $fn_name(
             mut ptr: ExternalPtr<WasmerRuntime>,
-            rfun: Robj,
-            name: String
+            rfun: Robj
         ) -> ExternalPtr<Function> {
             let runtime = ptr.as_mut();
-            register_r_function(&name, rfun.clone());
-            let name_cloned = name.clone();
+            let id = register_r_function_internal(rfun);
             let fun = Function::new_typed(&mut runtime.store, move |x: i32, y: i32| -> i32 {
                 let result = R_FUNCTION_REGISTRY.with(|reg| {
-                    reg.borrow().get(&name_cloned).cloned()
+                    reg.borrow().get(&id).cloned()
                 }).and_then(|rfun| {
                     rfun.call(pairlist!(r!(x), r!(y))).ok()
                 });
@@ -1065,21 +1149,18 @@ macro_rules! impl_r_host_function {
         /// Create a Wasmer host function from an R function with static signature (f64, f64) -> f64
         /// @param ptr External pointer to WasmerRuntime
         /// @param rfun R function object
-        /// @param name Character string for registry name
         /// @return External pointer to Function
         /// @export
         #[extendr]
         pub fn $fn_name(
             mut ptr: ExternalPtr<WasmerRuntime>,
-            rfun: Robj,
-            name: String
+            rfun: Robj
         ) -> ExternalPtr<Function> {
             let runtime = ptr.as_mut();
-            register_r_function(&name, rfun.clone());
-            let name_cloned = name.clone();
+            let id = register_r_function_internal(rfun);
             let fun = Function::new_typed(&mut runtime.store, move |x: f64, y: f64| -> f64 {
                 let result = R_FUNCTION_REGISTRY.with(|reg| {
-                    reg.borrow().get(&name_cloned).cloned()
+                    reg.borrow().get(&id).cloned()
                 }).and_then(|rfun| {
                     rfun.call(pairlist!(r!(x), r!(y))).ok()
                 });
@@ -1088,7 +1169,6 @@ macro_rules! impl_r_host_function {
             ExternalPtr::new(fun)
         }
     };
-    // Add more signatures as needed
 }
 impl_r_host_function!(wasmer_function_new_i32_to_i32, i32, i32);
 impl_r_host_function!(wasmer_function_new_i32_i32_to_i32, (i32, i32), i32);
@@ -1125,4 +1205,6 @@ extendr_module! {
     fn wasmer_function_new_i32_to_i32;
     fn wasmer_function_new_i32_i32_to_i32;
     fn wasmer_function_new_f64_f64_to_f64;
+    fn wasmer_runtime_new_with_compiler_ext;
+    fn wasmer_wasi_state_new_ext;
 }
