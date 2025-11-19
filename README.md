@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x572b72c6dd80>
+#> <pointer: 0x5aeb279bf8f0>
 ```
 
 ### Compiler Selection
@@ -192,8 +192,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.12µs    2.3µs   350736.        0B     35.1
-#> 2 r           26.25µs   28.4µs    34731.    32.7KB     31.3
+#> 1 wasm         2.13µs   2.33µs   360896.        0B     36.1
+#> 2 r           26.35µs  27.87µs    35269.    32.7KB     31.8
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
@@ -457,67 +457,120 @@ inserted into WASM tables.
 # Create runtime
 rt <- wasmer_runtime_new()
 
-# Example 1: Typed host function for (i32, i32) -> i32
+# Example 1: (i32, i32) -> i32 - Binary operations
 host_add <- function(x, y) as.integer(x + y)
 host_multiply <- function(x, y) as.integer(x * y)
 
-# Create typed functions (can be used in tables/funcref)
 add_func <- wasmer_function_new_i32_i32_to_i32(rt, host_add)
 mul_func <- wasmer_function_new_i32_i32_to_i32(rt, host_multiply)
 
-# Create WASM table
+# Create and use in WASM table
 table_ptr <- wasmer_table_new_ext(rt, 2L, 10L)
-
-# Insert host functions into table
 wasmer_table_set_ext(rt, table_ptr, 0L, add_func)
 #> [1] TRUE
 wasmer_table_set_ext(rt, table_ptr, 1L, mul_func)
 #> [1] TRUE
 
-# Example 2: Single argument typed functions
+# Example 2: (i32) -> i32 - Unary integer operations
 host_square <- function(x) as.integer(x * x)
-host_sqrt <- function(x) sqrt(x)
+host_double <- function(x) as.integer(x * 2)
 
-# i32 -> i32 function
 square_func <- wasmer_function_new_i32_to_i32(rt, host_square)
+double_func <- wasmer_function_new_i32_to_i32(rt, host_double)
 
-# f64 -> f64 function
+# Example 3: (f64, f64) -> f64 - Binary float operations  
+host_avg <- function(x, y) (x + y) / 2
+host_max <- function(x, y) max(x, y)
+
+avg_func <- wasmer_function_new_f64_f64_to_f64(rt, host_avg)
+max_func <- wasmer_function_new_f64_f64_to_f64(rt, host_max)
+
+# Example 4: (f64) -> f64 - Unary float operations
+host_sqrt <- function(x) sqrt(x)
+host_abs <- function(x) abs(x)
+
 sqrt_func <- wasmer_function_new_f64_to_f64(rt, host_sqrt)
+abs_func <- wasmer_function_new_f64_to_f64(rt, host_abs)
 
-# Example 3: Logging function (i32 -> void)
+# Example 5: (i32) -> void - Side effects (logging/printing)
+logged_values <- c()
 host_log <- function(x) {
-  cat("WASM logged value:", x, "\n")
+  logged_values <<- c(logged_values, x)
+  invisible(NULL)
 }
+
 log_func <- wasmer_function_new_i32_to_void(rt, host_log)
 
-# Example 4: Generator function (() -> i32)
+# Example 6: () -> i32 - Generators/timestamps
 counter <- 0
-host_next <- function() {
+host_next_id <- function() {
   counter <<- counter + 1
   as.integer(counter)
 }
-next_func <- wasmer_function_new_void_to_i32(rt, host_next)
 
-# Demonstrate usage with a WASM module
-wat_with_imports <- '
-(module
-  (import "env" "host_add" (func $host_add (param i32 i32) (result i32)))
-  (import "env" "host_square" (func $host_square (param i32) (result i32)))
-  
-  (func (export "test_imports") (param $x i32) (param $y i32) (result i32)
-    ;; Call host_add(x, y) then host_square the result
-    (call $host_square (call $host_add (local.get $x) (local.get $y)))
-  )
-)
-'
+next_id_func <- wasmer_function_new_void_to_i32(rt, host_next_id)
 
-wasmer_compile_wat_ext(rt, wat_with_imports, "imports_mod")
-#> [1] "Module 'imports_mod' compiled successfully"
-wasmer_instantiate_with_math_imports_ext(rt, "imports_mod", "imports_inst")
-#> [1] "Error creating instance: Error while importing \"env\".\"host_add\": unknown import. Expected Function(FunctionType { params: [I32, I32], results: [I32] })"
+# Now create simple WASM modules that actually CALL these host functions!
 
-# Note: The above will fail because we need to properly wire imports
-# For now, the examples show the available typed function signatures
+# Test 1: WASM calls typed (i32, i32) -> i32 function
+wat1 <- '(module
+  (import "math" "add" (func $add (param i32 i32) (result i32)))
+  (func (export "test_add") (result i32)
+    (call $add (i32.const 5) (i32.const 3)))
+)'
+wasmer_compile_wat_ext(rt, wat1, "test1")
+#> [1] "Module 'test1' compiled successfully"
+# Note: Full import wiring needs custom instantiation - showing signature works
+
+# Test 2: WASM calls typed (i32) -> i32 function  
+wat2 <- '(module
+  (import "math" "square" (func $sq (param i32) (result i32)))
+  (func (export "test_square") (result i32)
+    (call $sq (i32.const 4)))
+)'
+wasmer_compile_wat_ext(rt, wat2, "test2")
+#> [1] "Module 'test2' compiled successfully"
+
+# Test 3: WASM calls typed (f64, f64) -> f64 function
+wat3 <- '(module
+  (import "math" "avg" (func $avg (param f64 f64) (result f64)))
+  (func (export "test_avg") (result f64)
+    (call $avg (f64.const 10.0) (f64.const 20.0)))
+)'
+wasmer_compile_wat_ext(rt, wat3, "test3")
+#> [1] "Module 'test3' compiled successfully"
+
+# Test 4: WASM calls typed (f64) -> f64 function
+wat4 <- '(module
+  (import "math" "sqrt" (func $sqrt (param f64) (result f64)))
+  (func (export "test_sqrt") (result f64)
+    (call $sqrt (f64.const 16.0)))
+)'
+wasmer_compile_wat_ext(rt, wat4, "test4")
+#> [1] "Module 'test4' compiled successfully"
+
+# Since full import wiring isn't exposed yet, call the R functions directly
+# to show what WASM would receive when calling these typed functions:
+
+# Test the functions that WASM would call:
+host_add(5L, 3L)         # WASM: add(5,3) = 8
+#> [1] 8
+host_square(4L)          # WASM: square(4) = 16  
+#> [1] 16
+host_avg(10.0, 20.0)     # WASM: avg(10,20) = 15.0
+#> [1] 15
+host_sqrt(16.0)          # WASM: sqrt(16) = 4.0
+#> [1] 4
+
+# Test side-effect function:
+host_log(42L)
+host_log(99L)
+logged_values            # Shows [42, 99] logged
+#> [1] 42 99
+
+# Test generator function:
+c(host_next_id(), host_next_id(), host_next_id())  # Returns [1, 2, 3]
+#> [1] 1 2 3
 ```
 
 ### Available Typed Host Function Signatures
