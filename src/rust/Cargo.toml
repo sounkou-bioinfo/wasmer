@@ -19,6 +19,11 @@ once_cell = "1.18"
 lazy_static = "1.4"
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 
+[features]
+# LLVM compiler feature - requires LLVM 18 installed on the system
+# Enable with: cargo build --features llvm_compiler
+llvm_compiler = ["wasmer/llvm"]
+
 [profile.release]
 lto = true
 codegen-units = 1

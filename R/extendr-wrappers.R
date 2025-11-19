@@ -242,6 +242,27 @@ wasmer_function_new_i32_i32_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_fun
 #' @export
 wasmer_function_new_f64_f64_to_f64 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_f64_f64_to_f64, ptr, rfun)
 
+#' Create a Wasmer host function from an R function with static signature (f64) -> f64
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_f64_to_f64 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_f64_to_f64, ptr, rfun)
+
+#' Create a Wasmer host function from an R function with static signature (i32) -> void
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_i32_to_void <- function(ptr, rfun) .Call(wrap__wasmer_function_new_i32_to_void, ptr, rfun)
+
+#' Create a Wasmer host function from an R function with static signature () -> i32
+#' @param ptr External pointer to WasmerRuntime
+#' @param rfun R function object
+#' @return External pointer to Function
+#' @export
+wasmer_function_new_void_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_void_to_i32, ptr, rfun)
+
 #' Create a new Wasmer runtime with a specific compiler.
 #' @param compiler_name Name of the compiler ("cranelift", "singlepass")
 #' @return External pointer to WasmerRuntime
