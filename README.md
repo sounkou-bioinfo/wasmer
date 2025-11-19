@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5dc58ead0d80>
+#> <pointer: 0x572b72c6dd80>
 ```
 
 ### Compiler Selection
@@ -80,7 +80,7 @@ hello_wasi_wat <- '
     (func $fd_write (param i32 i32 i32 i32) (result i32)))
   
   (memory (export "memory") 1)
-  (data (i32.const 0) "Hello from WASI!\n")
+  (data (i32.const 0) "Hello from WASI!\\0a")
   
   ;; _start is the default WASI entry point
   (func $_start (export "_start")
@@ -102,16 +102,16 @@ hello_wasi_wat <- '
 '
 
 wasmer_compile_wat_ext(rt_wasi, hello_wasi_wat, "hello_wasi")
-#> [1] "Error converting WAT to WASM: invalid character in string '\\n'\n     --> <anon>:8:40\n      |\n    8 |   (data (i32.const 0) \"Hello from WASI!\n      |                                        ^"
+#> [1] "Module 'hello_wasi' compiled successfully"
 wasmer_instantiate_ext(rt_wasi, "hello_wasi", "wasi_instance")
-#> [1] "Module 'hello_wasi' not found"
+#> [1] "Instance 'wasi_instance' created successfully"
 
 # Call the WASI _start function (prints "Hello from WASI!")
 # Note: WASI captured output is currently not exposed in R bindings
 # But the module executes successfully
 result <- wasmer_call_function_ext(rt_wasi, "wasi_instance", "_start", list())
 result$success
-#> [1] FALSE
+#> [1] TRUE
 ```
 
 ### Math Operations compiled from Rust
@@ -192,8 +192,8 @@ bench_results
 #> # A tibble: 2 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         2.13µs   2.41µs   338958.        0B     33.9
-#> 2 r            26.5µs  28.41µs    34626.    32.7KB     31.2
+#> 1 wasm         2.12µs    2.3µs   350736.        0B     35.1
+#> 2 r           26.25µs   28.4µs    34731.    32.7KB     31.3
 stopifnot(bench_results$wasm[[1]] == bench_results$r[[1]])
 ```
 
