@@ -63,8 +63,9 @@ pub struct WasmerEnv {
 // Deprecated: register_r_function with name is no longer used internally in the same way
 // Keeping it for compatibility if needed, but we will likely remove it or change it.
 // For now, we just ignore the name and register it.
-pub fn register_r_function(_name: &str, fun: Robj) {
-    register_r_function_internal(fun);
+pub fn register_r_function(_name: &str, fun: Robj) -> u32 {
+    let id = register_r_function_internal(fun);
+    id
 }
 
 
@@ -724,11 +725,11 @@ pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
 /// @return TRUE if successful
 /// @export
 #[extendr]
-pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name: String, fun: Robj) -> bool {
+pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name: String, fun: Robj) -> u32 {
     let runtime = ptr.as_mut();
     runtime.r_function_registry.insert(name.clone(), fun.clone());
-    register_r_function(&name, fun); // Ensure global registry is updated
-    true
+    let handle = register_r_function(&name, fun); // Ensure global registry is updated
+    handle
 }
 
 /// Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector

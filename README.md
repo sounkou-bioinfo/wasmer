@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5a028e087260>
+#> <pointer: 0x632d6e889d40>
 ```
 
 ### Compiler Selection
@@ -206,9 +206,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        25.63µs  26.72µs    36423.        0B      0  
-#> 2 r_naive      3.34ms   3.44ms      290.    32.7KB     35.1
-#> 3 r_tailcall   10.7µs  11.45µs    83269.        0B     41.7
+#> 1 wasm        26.15µs  27.52µs    36368.        0B      0  
+#> 2 r_naive      3.29ms   3.43ms      291.    32.7KB     35.0
+#> 3 r_tailcall   10.7µs  11.41µs    84061.        0B     42.1
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -393,32 +393,53 @@ stopifnot(grepl("created successfully", instance_bin_result, ignore.case = TRUE)
 result_bin <- wasmer_call_function_ext(runtime, "double_instance_bin", "double", list(21L))
 stopifnot(result_bin$success)
 stopifnot(result_bin$values[[1]] == 42)
+result_bin$values[[1]]
+#> [1] 42
 ```
 
 ## Register and Call an R Function from WASM
 
 ``` r
-# Define an R function to double a value
-r_double <- function(x) as.integer(x * 2)
-wasmer_register_r_function_ext(runtime, "r_double", r_double)
-#> [1] TRUE
 
-wat_code <- '
+
+## Corrected Example: Register and Call an R Function from WASM
+
+# Define an R function to double a value
+r_double <- function(a) {
+  2L * as.integer(a)
+}
+handle <- wasmer_register_r_function_ext(runtime, "r_double", r_double)
+
+# The Rust host function expects (handle, args_ptr, argc), but only the args are passed to R
+wat_code <- sprintf('
 (module
-  (import "env" "r_host_call" (func $r_host_call (param i32 i32 i32 i32) (result i32)))
+  (import "env" "r_host_call" (func $r_host_call (param i32 i32 i32) (result i32)))
   (memory (export "memory") 1)
   (data (i32.const 0) "r_double")
   (func $call_r_double (export "call_r_double") (param $x i32) (result i32)
     (i32.store (i32.const 100) (local.get $x))
-    (call $r_host_call (i32.const 0) (i32.const 8) (i32.const 1) (i32.const 100))
+    (call $r_host_call (i32.const %d) (i32.const 100) (i32.const 1))
   )
 )
-'
+', handle)
 
 compile_result <- wasmer_compile_wat_ext(runtime, wat_code, "rhost_module")
 compile_result
 #> [1] "Module 'rhost_module' compiled successfully"
+instance_result <- wasmer_instantiate_ext(runtime, "rhost_module", "rhost_instance")
+instance_result
+#> [1] "Instance 'rhost_instance' created successfully"
 result <- wasmer_call_function_ext(runtime, "rhost_instance", "call_r_double", list(21L))
+#> [wasmer] Host call: handle=1, args=[21]
+#> [wasmer] Found R function for handle 1, calling...
+#> [wasmer] R call result: 42
+#> [wasmer] Returning integer value: 42
+result
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 42
 stopifnot(result$values[[1]] == 42)
 ```
 
@@ -427,36 +448,33 @@ stopifnot(result$values[[1]] == 42)
 This example demonstrates how to use Wasmer’s memory utilities from R.
 
 ``` r
-# Create a runtime
-rt <- wasmer_runtime_new()
-
 # Compile a simple WAT module with exported memory
 wat <- '(module (memory (export "memory") 1) (func (export "write") (param i32 i32) (result i32)
   local.get 0
   local.get 1
   i32.store
   local.get 0))'
-wasmer_compile_wat_ext(rt, wat, "memmod")
+wasmer_compile_wat_ext(runtime, wat, "memmod")
 #> [1] "Module 'memmod' compiled successfully"
-wasmer_instantiate_ext(rt, "memmod", "inst")
+wasmer_instantiate_ext(runtime, "memmod", "inst")
 #> [1] "Instance 'inst' created successfully"
 
 # Write bytes to memory
-wasmer_memory_write_ext(rt, "inst", "memory", 0, as.raw(c(65, 66, 67))) # Write 'A', 'B', 'C' at offset 0
+wasmer_memory_write_ext(runtime, "inst", "memory", 0, as.raw(c(65, 66, 67))) # Write 'A', 'B', 'C' at offset 0
 #> [1] TRUE
 
 # Read bytes from memory
-bytes <- wasmer_memory_read_ext(rt, "inst", "memory", 0, 3)
+bytes <- wasmer_memory_read_ext(runtime, "inst", "memory", 0, 3)
 print(bytes) # Should print raw vector: 41 42 43
 #> [1] 41 42 43
 
 # Grow memory by 1 page (64KiB)
-success <- wasmer_memory_grow_ext(rt, "inst", "memory", 1L)
+success <- wasmer_memory_grow_ext(runtime, "inst", "memory", 1L)
 print(success) # Should print TRUE if memory was grown
 #> [1] TRUE
 
 # Read as string
-str <- wasmer_memory_read_string_ext(rt, "inst", "memory", 0, 3)
+str <- wasmer_memory_read_string_ext(runtime, "inst", "memory", 0, 3)
 print(str) # Should print "ABC"
 #> [1] "ABC"
 ```
@@ -471,42 +489,42 @@ inserted into WASM tables.
 
 ``` r
 # Create runtime
-rt <- wasmer_runtime_new()
+rt <- runtime
 
 # Example 1: (i32, i32) -> i32 - Binary operations
 host_add <- function(x, y) as.integer(x + y)
 host_multiply <- function(x, y) as.integer(x * y)
 
-add_func <- wasmer_function_new_i32_i32_to_i32(rt, host_add)
-mul_func <- wasmer_function_new_i32_i32_to_i32(rt, host_multiply)
+add_func <- wasmer_function_new_i32_i32_to_i32(runtime, host_add)
+mul_func <- wasmer_function_new_i32_i32_to_i32(runtime, host_multiply)
 
 # Create and use in WASM table
-table_ptr <- wasmer_table_new_ext(rt, 2L, 10L)
-wasmer_table_set_ext(rt, table_ptr, 0L, add_func)
+table_ptr <- wasmer_table_new_ext(runtime, 2L, 10L)
+wasmer_table_set_ext(runtime, table_ptr, 0L, add_func)
 #> [1] TRUE
-wasmer_table_set_ext(rt, table_ptr, 1L, mul_func)
+wasmer_table_set_ext(runtime, table_ptr, 1L, mul_func)
 #> [1] TRUE
 
 # Example 2: (i32) -> i32 - Unary integer operations
 host_square <- function(x) as.integer(x * x)
 host_double <- function(x) as.integer(x * 2)
 
-square_func <- wasmer_function_new_i32_to_i32(rt, host_square)
-double_func <- wasmer_function_new_i32_to_i32(rt, host_double)
+square_func <- wasmer_function_new_i32_to_i32(runtime, host_square)
+double_func <- wasmer_function_new_i32_to_i32(runtime, host_double)
 
 # Example 3: (f64, f64) -> f64 - Binary float operations  
 host_avg <- function(x, y) (x + y) / 2
 host_max <- function(x, y) max(x, y)
 
-avg_func <- wasmer_function_new_f64_f64_to_f64(rt, host_avg)
-max_func <- wasmer_function_new_f64_f64_to_f64(rt, host_max)
+avg_func <- wasmer_function_new_f64_f64_to_f64(runtime, host_avg)
+max_func <- wasmer_function_new_f64_f64_to_f64(runtime, host_max)
 
 # Example 4: (f64) -> f64 - Unary float operations
 host_sqrt <- function(x) sqrt(x)
 host_abs <- function(x) abs(x)
 
-sqrt_func <- wasmer_function_new_f64_to_f64(rt, host_sqrt)
-abs_func <- wasmer_function_new_f64_to_f64(rt, host_abs)
+sqrt_func <- wasmer_function_new_f64_to_f64(runtime, host_sqrt)
+abs_func <- wasmer_function_new_f64_to_f64(runtime, host_abs)
 
 # Example 5: (i32) -> void - Side effects (logging/printing)
 logged_values <- c()
@@ -515,7 +533,7 @@ host_log <- function(x) {
   invisible(NULL)
 }
 
-log_func <- wasmer_function_new_i32_to_void(rt, host_log)
+log_func <- wasmer_function_new_i32_to_void(runtime, host_log)
 
 # Example 6: () -> i32 - Generators/timestamps
 counter <- 0
@@ -524,95 +542,77 @@ host_next_id <- function() {
   as.integer(counter)
 }
 
-next_id_func <- wasmer_function_new_void_to_i32(rt, host_next_id)
+next_id_func <- wasmer_function_new_void_to_i32(runtime, host_next_id)
 
 # Now create simple WASM modules that actually CALL these host functions!
+## Example: Call Host Function from WASM Table
 
-# Test 1: WASM calls typed (i32, i32) -> i32 function
-wat1 <- '(module
-  (import "math" "add" (func $add (param i32 i32) (result i32)))
-  (func (export "test_add") (result i32)
-    (call $add (i32.const 5) (i32.const 3)))
-)'
-wasmer_compile_wat_ext(rt, wat1, "test1")
-#> [1] "Module 'test1' compiled successfully"
-# Note: Full import wiring needs custom instantiation - showing signature works
 
-# Test 2: WASM calls typed (i32) -> i32 function  
-wat2 <- '(module
-  (import "math" "square" (func $sq (param i32) (result i32)))
-  (func (export "test_square") (result i32)
-    (call $sq (i32.const 4)))
-)'
-wasmer_compile_wat_ext(rt, wat2, "test2")
-#> [1] "Module 'test2' compiled successfully"
+# Reuse the same runtime used above
+# Host function: next_id generator
+counter <- 0
+host_next_id <- function() {
+  counter <<- counter + 1
+  as.integer(counter)
+}
+next_id_func <- wasmer_function_new_void_to_i32(runtime, host_next_id)
 
-# Test 3: WASM calls typed (f64, f64) -> f64 function
-wat3 <- '(module
-  (import "math" "avg" (func $avg (param f64 f64) (result f64)))
-  (func (export "test_avg") (result f64)
-    (call $avg (f64.const 10.0) (f64.const 20.0)))
-)'
-wasmer_compile_wat_ext(rt, wat3, "test3")
-#> [1] "Module 'test3' compiled successfully"
+# Create WASM table and set host function
+table_ptr <- wasmer_table_new_ext(runtime, 1L, 1L)
+wasmer_table_set_ext(runtime, table_ptr, 0L, next_id_func)
+#> [1] TRUE
 
-# Test 4: WASM calls typed (f64) -> f64 function
-wat4 <- '(module
-  (import "math" "sqrt" (func $sqrt (param f64) (result f64)))
-  (func (export "test_sqrt") (result f64)
-    (call $sqrt (f64.const 16.0)))
-)'
-wasmer_compile_wat_ext(rt, wat4, "test4")
-#> [1] "Module 'test4' compiled successfully"
+# WASM module that defines and uses a table
+wat_table_call <- '
+(module
+  (type $gen (func (result i32)))
+  (table 1 funcref)
+  (func $call_next_id (export "call_next_id") (result i32)
+    (call_indirect (type $gen) (i32.const 0))
+  )
+)
+'
 
-# Since full import wiring isn't exposed yet, call the R functions directly
-# to show what WASM would receive when calling these typed functions:
+# Compile the module
+wasmer_compile_wat_ext(runtime, wat_table_call, "table_module")
+#> [1] "Module 'table_module' compiled successfully"
 
-# Test the functions that WASM would call:
-host_add(5L, 3L)         # WASM: add(5,3) = 8
-#> [1] 8
-host_square(4L)          # WASM: square(4) = 16  
-#> [1] 16
-host_avg(10.0, 20.0)     # WASM: avg(10,20) = 15.0
-#> [1] 15
-host_sqrt(16.0)          # WASM: sqrt(16) = 4.0
-#> [1] 4
+# Instantiate the module (no custom imports possible with current API)
+wasmer_instantiate_ext(runtime, "table_module", "table_instance")
+#> [1] "Instance 'table_instance' created successfully"
 
-# Test side-effect function:
-host_log(42L)
-host_log(99L)
-logged_values            # Shows [42, 99] logged
-#> [1] 42 99
+# Call the WASM function, which calls the host function via the table
+result <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
+print(result)
+#> $success
+#> [1] FALSE
+#> 
+#> $error
+#> [1] "Error calling function: RuntimeError: uninitialized element\n    at call_next_id (<module>[0]:0x32)"
 
-# Test generator function:
-c(host_next_id(), host_next_id(), host_next_id())  # Returns [1, 2, 3]
-#> [1] 1 2 3
+result2 <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
+print(result2)
+#> $success
+#> [1] FALSE
+#> 
+#> $error
+#> [1] "Error calling function: RuntimeError: uninitialized element\n    at call_next_id (<module>[0]:0x32)"
 ```
 
 ### Available Typed Host Function Signatures
 
 The package provides the following typed host function creators:
 
-- `wasmer_function_new_i32_to_i32(rt, rfun)` - (i32) -\> i32
-- `wasmer_function_new_i32_i32_to_i32(rt, rfun)` - (i32, i32) -\> i32  
-- `wasmer_function_new_f64_f64_to_f64(rt, rfun)` - (f64, f64) -\> f64
-- `wasmer_function_new_f64_to_f64(rt, rfun)` - (f64) -\> f64
-- `wasmer_function_new_i32_to_void(rt, rfun)` - (i32) -\> void (for
+- `wasmer_function_new_i32_to_i32(runtime, rfun)` - (i32) -\> i32
+- `wasmer_function_new_i32_i32_to_i32(runtime, rfun)` - (i32, i32) -\>
+  i32  
+- `wasmer_function_new_f64_f64_to_f64(runtime, rfun)` - (f64, f64) -\>
+  f64
+- `wasmer_function_new_f64_to_f64(runtime, rfun)` - (f64) -\> f64
+- `wasmer_function_new_i32_to_void(runtime, rfun)` - (i32) -\> void (for
   logging)
-- `wasmer_function_new_void_to_i32(rt, rfun)` - () -\> i32 (for
+- `wasmer_function_new_void_to_i32(runtime, rfun)` - () -\> i32 (for
   generators)
-
-> \[!IMPORTANT\] **Typed vs Dynamic Host Functions**
->
-> - **Typed Host Functions**: Created with `wasmer_function_new_*`
->   variants. These have fixed signatures and **CAN** be inserted into
->   WASM tables and used as `funcref`.
-> - **Dynamic Host Functions**: Created with `wasmer_function_new_ext`.
->   These are flexible with any signature, but **CANNOT** be used in
->   tables due to Wasmer engine limitations.
->
-> Use typed functions when you need table/funcref support, dynamic
-> functions for direct imports only.
 
 ## LLM Usage Disclosure
 
