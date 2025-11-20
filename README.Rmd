@@ -29,7 +29,14 @@ remotes::install_github("sounkou-bioinfo/wasmer")
 ```
 ##  Usage
 
-### Initialize the Runtime
+### Initialize the Runtime with specified compiler
+
+
+You can choose the compiler backend when initializing the runtime. Each compiler offers different trade-offs:
+
+- **Cranelift** (default): Fast compilation with good runtime performance
+- **Singlepass**: Fastest compilation (linear time), ideal for blockchains/gas metering
+- **LLVM** (optional): Best runtime performance (~50% faster than Cranelift), but requires LLVM 18 installed
 
 ```{r init}
 library(wasmer)
@@ -40,29 +47,26 @@ runtime
 # shudown
 wasmer_runtime_shutdown(runtime)
 
-# to continue demo, we create a runtime to will be re-used
-runtime <- wasmer_runtime_new()
+# Initialize with Cranelift (default)
+rt_cranelift <- wasmer_runtime_new_with_compiler_ext("cranelift")
+wasmer_runtime_shutdown(rt_cranelift)
+# Initialize with Singlepass for fastest compilation
+rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
+wasmer_runtime_shutdown(rt_singlepass)
+# LLVM is available only if package was built with LLVM support
+# (requires LLVM 18 on system)
+runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
+# to continue with the toor, we create a runtime that will be re-using
+# only one runtime per process is recommended
 
 ```
 
 ### Compiler Selection
 
-You can choose the compiler backend when initializing the runtime. Each compiler offers different trade-offs:
-
-- **Cranelift** (default): Fast compilation with good runtime performance
-- **Singlepass**: Fastest compilation (linear time), ideal for blockchains/gas metering
-- **LLVM** (optional): Best runtime performance (~50% faster than Cranelift), but requires LLVM 18 installed
 
 ```{r init-compiler}
-# Initialize with Cranelift (default)
-rt_cranelift <- wasmer_runtime_new_with_compiler_ext("cranelift")
 
-# Initialize with Singlepass for fastest compilation
-rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
 
-# LLVM is available only if package was built with LLVM support
-# (requires LLVM 18 on system)
-# rt_llvm <- wasmer_runtime_new_with_compiler_ext("llvm")
 ```
 
 

@@ -23,23 +23,7 @@ remotes::install_github("sounkou-bioinfo/wasmer")
 
 ## Usage
 
-### Initialize the Runtime
-
-``` r
-library(wasmer)
-
-# Create the Wasmer runtime (must be called first)
-runtime <- wasmer_runtime_new()
-runtime
-#> <pointer: 0x5f8b00d8aa30>
-# shudown
-wasmer_runtime_shutdown(runtime)
-
-# to continue demo, we create a runtime to will be re-used
-runtime <- wasmer_runtime_new()
-```
-
-### Compiler Selection
+### Initialize the Runtime with specified compiler
 
 You can choose the compiler backend when initializing the runtime. Each
 compiler offers different trade-offs:
@@ -52,16 +36,30 @@ compiler offers different trade-offs:
   Cranelift), but requires LLVM 18 installed
 
 ``` r
+library(wasmer)
+
+# Create the Wasmer runtime (must be called first)
+runtime <- wasmer_runtime_new()
+runtime
+#> <pointer: 0x63333d4c39b0>
+# shudown
+wasmer_runtime_shutdown(runtime)
+
 # Initialize with Cranelift (default)
 rt_cranelift <- wasmer_runtime_new_with_compiler_ext("cranelift")
-
+wasmer_runtime_shutdown(rt_cranelift)
 # Initialize with Singlepass for fastest compilation
 rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
-
+wasmer_runtime_shutdown(rt_singlepass)
 # LLVM is available only if package was built with LLVM support
 # (requires LLVM 18 on system)
-# rt_llvm <- wasmer_runtime_new_with_compiler_ext("llvm")
+runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
+#> Error getting compiler config: LLVM compiler support not enabled. Rebuild the package with LLVM support if you have LLVM 18 installed. Available compilers: cranelift, singlepass
+# to continue with the toor, we create a runtime that will be re-using
+# only one runtime per process is recommended
 ```
+
+### Compiler Selection
 
 ### Math Operations compiled from Rust
 
@@ -161,9 +159,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.12µs  27.36µs    36495.    2.61KB      0  
-#> 2 r_naive      3.34ms   3.43ms      292.   32.66KB     35.0
-#> 3 r_tailcall  10.45µs  11.18µs    85524.        0B     42.8
+#> 1 wasm        26.13µs   26.6µs    36882.    2.61KB      0  
+#> 2 r_naive      3.35ms   3.43ms      292.   32.66KB     35.0
+#> 3 r_tailcall  10.67µs  11.38µs    84398.        0B     42.2
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -493,9 +491,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] -1.274389
+#> [1] 0.6261168
 sum(arr)
-#> [1] -1.274389
+#> [1] 0.6261168
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 
