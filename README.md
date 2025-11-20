@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x63de72d27790>
+#> <pointer: 0x59f6532f5cb0>
 ```
 
 ### Compiler Selection
@@ -206,9 +206,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        25.66µs  27.07µs    36151.        0B      0  
-#> 2 r_naive      3.27ms   3.29ms      299.    32.7KB     37.7
-#> 3 r_tailcall  10.42µs  11.04µs    85853.        0B     42.9
+#> 1 wasm        27.16µs  27.49µs    36010.        0B      0  
+#> 2 r_naive      3.31ms   3.42ms      293.    32.7KB     34.8
+#> 3 r_tailcall  10.71µs  11.46µs    83488.        0B     41.8
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -558,17 +558,44 @@ host_next_id <- function() {
 next_id_func <- wasmer_function_new_void_to_i32(runtime, host_next_id)
 
 # Create WASM table and set host function
-table_ptr <- wasmer_table_new_ext(runtime, 1L, 1L)
-wasmer_table_set_ext(runtime, table_ptr, 0L, next_id_func)
+
+# Create WASM table with 4 slots and set host functions
+table_ptr <- wasmer_table_new_ext(runtime, 4L, 4L)
+wasmer_table_set_ext(runtime, table_ptr, 0L, next_id_func)   # slot 0: next_id
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 1L, add_func)       # slot 1: add
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 2L, square_func)    # slot 2: square
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 3L, mul_func)       # slot 3: multiply
 #> [1] TRUE
 
 # WASM module that imports and uses a table
 wat_table_call <- '
 (module
+  ;; Types for each host function signature
   (type $gen (func (result i32)))
-  (import "env" "host_table" (table 1 funcref))
+  (type $binop (func (param i32 i32) (result i32)))
+  (type $unop (func (param i32) (result i32)))
+
+  ;; Import a table with 4 funcref slots
+  (import "env" "host_table" (table 4 funcref))
+
+  ;; Call next_id (slot 0)
   (func $call_next_id (export "call_next_id") (result i32)
     (call_indirect (type $gen) (i32.const 0))
+  )
+  ;; Call add (slot 1)
+  (func $call_add (export "call_add") (param $x i32) (param $y i32) (result i32)
+    (call_indirect (type $binop) (local.get $x) (local.get $y) (i32.const 1))
+  )
+  ;; Call square (slot 2)
+  (func $call_square (export "call_square") (param $x i32) (result i32)
+    (call_indirect (type $unop) (local.get $x) (i32.const 2))
+  )
+  ;; Call multiply (slot 3)
+  (func $call_multiply (export "call_multiply") (param $x i32) (param $y i32) (result i32)
+    (call_indirect (type $binop) (local.get $x) (local.get $y) (i32.const 3))
   )
 )
 '
@@ -582,21 +609,39 @@ wasmer_instantiate_with_table_ext(runtime, "table_module", "table_instance", tab
 #> [1] "Instance 'table_instance' created successfully with table import"
 
 # Call the WASM function, which calls the host function via the table
-result <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
-print(result)
+
+# Call each WASM function, which calls the corresponding host function via the table
+result_next_id <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
+print(result_next_id)
 #> $success
 #> [1] TRUE
 #> 
 #> $values
 #> [1] 1
 
-result2 <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
-print(result2)
+result_add <- wasmer_call_function_ext(runtime, "table_instance", "call_add", list(10L, 32L))
+print(result_add)
 #> $success
 #> [1] TRUE
 #> 
 #> $values
-#> [1] 2
+#> [1] 42
+
+result_square <- wasmer_call_function_ext(runtime, "table_instance", "call_square", list(7L))
+print(result_square)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 49
+
+result_multiply <- wasmer_call_function_ext(runtime, "table_instance", "call_multiply", list(6L, 7L))
+print(result_multiply)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 42
 ```
 
 ### Available Typed Host Function Signatures
