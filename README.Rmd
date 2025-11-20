@@ -107,7 +107,7 @@ wasmer_instantiate_ext(rt_wasi, "hello_wasi", "wasi_instance")
 # Note: WASI captured output is currently not exposed in R bindings
 # But the module executes successfully
 result <- wasmer_call_function_ext(rt_wasi, "wasi_instance", "_start", list())
-result$success
+result
 ```
 
 ### Math Operations compiled from Rust

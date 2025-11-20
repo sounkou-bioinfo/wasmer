@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5dbbfcda9960>
+#> <pointer: 0x56a0ab496ce0>
 ```
 
 ### Compiler Selection
@@ -110,8 +110,12 @@ wasmer_instantiate_ext(rt_wasi, "hello_wasi", "wasi_instance")
 # Note: WASI captured output is currently not exposed in R bindings
 # But the module executes successfully
 result <- wasmer_call_function_ext(rt_wasi, "wasi_instance", "_start", list())
-result$success
+result
+#> $success
 #> [1] TRUE
+#> 
+#> $values
+#> list()
 ```
 
 ### Math Operations compiled from Rust
@@ -206,9 +210,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.14µs   27.4µs    36413.        0B      0  
-#> 2 r_naive      3.33ms   3.42ms      292.    32.7KB     35.1
-#> 3 r_tailcall  10.67µs  11.37µs    84464.        0B     42.3
+#> 1 wasm        25.57µs   26.8µs    37078.        0B      0  
+#> 2 r_naive      3.27ms    3.3ms      300.    32.7KB     34.9
+#> 3 r_tailcall  10.39µs     11µs    86912.        0B     43.5
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -536,9 +540,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] 3.350959
+#> [1] -1.492519
 sum(arr)
-#> [1] 3.350959
+#> [1] -1.492519
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 
