@@ -670,23 +670,41 @@ pub fn wasmer_runtime_new_with_compiler_ext(compiler_name: String) -> ExternalPt
     ExternalPtr::new(runtime)
 }
 
-/// Create a WASI state for the runtime.
+/// Create a WASI or WASIX state for the runtime.
 /// @param ptr External pointer to WasmerRuntime
-/// @param module_name Name of the module (for WASI args)
+/// @param module_name Name of the module (for WASI/WASIX args)
+/// @param env_type Environment type: "wasi" (default) or "wasix"
 /// @return TRUE if successful, FALSE otherwise
 /// @export
 #[extendr]
-pub fn wasmer_wasi_state_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String) -> bool {
+pub fn wasmer_wasi_state_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String, env_type: Option<String>) -> bool {
     let runtime = ptr.as_mut();
     let _guard = TOKIO_RUNTIME.enter();
-    match WasiUtils::create_wasi_env(&mut runtime.store, &module_name) {
-        Ok(env) => {
-            runtime.wasi_env = Some(env);
-            true
+    let env_type = env_type.unwrap_or_else(|| "wasi".to_string());
+    match env_type.as_str() {
+        "wasix" => {
+            match WasiUtils::create_wasi_env(&mut runtime.store, &module_name) {
+                Ok(env) => {
+                    runtime.wasi_env = Some(env);
+                    true
+                }
+                Err(e) => {
+                    rprintln!("Error creating WASIX state: {}", e);
+                    false
+                }
+            }
         }
-        Err(e) => {
-            rprintln!("Error creating WASI state: {}", e);
-            false
+        _ => {
+            match WasiUtils::create_wasi_env(&mut runtime.store, &module_name) {
+                Ok(env) => {
+                    runtime.wasi_env = Some(env);
+                    true
+                }
+                Err(e) => {
+                    rprintln!("Error creating WASI state: {}", e);
+                    false
+                }
+            }
         }
     }
 }
@@ -1364,7 +1382,7 @@ extendr_module! {
     fn wasmer_function_new_i32_to_void;
     fn wasmer_function_new_void_to_i32;
     fn wasmer_runtime_new_with_compiler_ext;
-    fn wasmer_wasi_state_new_ext;
     fn wasmer_instantiate_with_table_ext;
+    fn wasmer_wasi_state_new_ext;
     fn wasmer_runtime_release_ressources;
 }

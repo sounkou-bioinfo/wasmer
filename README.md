@@ -43,7 +43,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5b696318b3c0>
+#> <pointer: 0x62737481e880>
 # can release ressources before the gc and the external pointer release
 # mechamism
 wasmer_runtime_release_ressources(runtime)
@@ -54,14 +54,18 @@ rm(runtime)
 # Initialize with Singlepass for fastest compilation
 runtime <- wasmer_runtime_new_with_compiler_ext("singlepass")
 rm(runtime)
+gc()
+#>           used (Mb) gc trigger (Mb) max used (Mb)
+#> Ncells  519186 27.8    1125150 60.1   716477 38.3
+#> Vcells 1082984  8.3    8388608 64.0  2005466 15.4
 # LLVM is available only if package was built with LLVM support
 # (requires LLVM 18 on system)
 #runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
 # to continue with the toor, we create a runtime that will be re-using
 # only one runtime per process is recommended
-runtime <- wasmer_runtime_new_with_compiler_ext("cranelift")
+runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5b6962802410>
+#> <pointer: 0x6273747e0aa0>
 ```
 
 ### Compiler Selection
@@ -164,9 +168,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.31µs  27.48µs    36055.    2.61KB      0  
-#> 2 r_naive      3.35ms   3.46ms      288.   32.66KB     35.2
-#> 3 r_tailcall  10.64µs  11.37µs    84161.        0B     42.1
+#> 1 wasm         25.6µs  26.81µs    37291.    2.61KB     3.73
+#> 2 r_naive      3.26ms   3.37ms      297.   32.66KB    69.0 
+#> 3 r_tailcall  10.35µs  11.07µs    86955.        0B    78.3
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -496,9 +500,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] -2.238958
+#> [1] -7.881903
 sum(arr)
-#> [1] -2.238958
+#> [1] -7.881903
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 
@@ -761,64 +765,91 @@ The package provides the following typed host function creators:
 - `wasmer_function_new_void_to_i32(runtime, rfun)` - () -\> i32 (for
   generators)
 
-## WASI Support
+## WASI(X)
 
-The package supports WASI (WebAssembly System Interface), allowing WASM
-modules to interact with system resources in a sandboxed way.
+The package supports WASIX (WebAssembly System Interface Extension),
+allowing WASM modules to interact with system resources and files in a
+sandboxed way.
 
 ``` r
-# Create a WASI-enabled runtime
-rt_wasi <- wasmer_runtime_new()
+# Create a WASIX-enabled runtime
+rt_wasix <- wasmer_runtime_new()
 
-# Create WASI environment (must be done before instantiation)
-wasmer_wasi_state_new_ext(rt_wasi, "hello_wasi")
+# Create a temp directory and file in R
+output_dir <- tempdir()
+output_file <- file.path(output_dir, "wasix_output.txt")
+file.create(output_file)
+#> [1] TRUE
+file_name <- basename(output_file)
+file_data <- "Hello from WASIX file"
+
+# Create WASIX environment 
+wasmer_wasi_state_new_ext(rt_wasix, "hello_wasix", "wasix")
 #> [1] TRUE
 
-# Simple WASI "Hello World" that prints to stdout
-# Note: WASI modules use wasi_snapshot_preview1 imports
-hello_wasi_wat <- '
+# WASIX WAT: open file and write to it using path_open and fd_write
+escape_wat_string <- function(x) {
+  paste0(gsub('([\\"])', '\\\\1', x), collapse = "")
+}
+file_wasix_wat <- sprintf('
 (module
-  ;; Import WASI fd_write function for writing to stdout
-  (import "wasi_snapshot_preview1" "fd_write" 
+  (import "wasix_32v1" "path_open"
+    (func $path_open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))
+  (import "wasix_32v1" "fd_write"
     (func $fd_write (param i32 i32 i32 i32) (result i32)))
-  
   (memory (export "memory") 1)
-  (data (i32.const 0) "Hello from WASI!\\0a")
-  
-  ;; _start is the default WASI entry point
+  (data (i32.const 0) "%s")
+  (data (i32.const 100) "%s")
   (func $_start (export "_start")
-    ;; Write the iovec structure at address 100
-    ;; iovec:  [ptr, len]
-    (i32.store (i32.const 100) (i32.const 0))  ;; ptr to string
-    (i32.store (i32.const 104) (i32.const 17)) ;; length of string
-    
-    ;; Call fd_write(1, 100, 1, 200)
-    ;; fd=1 (stdout), iovs=100, iovs_len=1, nwritten=200
+    (local $fd i32)
+    ;; Open the file in the preopened dir (fd=3)
+    (i32.store (i32.const 200) (i32.const 0))   ;; pointer to filename
+    (i32.store (i32.const 204) (i32.const %d))  ;; length of filename
+    (drop (call $path_open
+      (i32.const 3)   ;; preopened dir fd
+      (i32.const 0)   ;; dirflags
+      (i32.const 0)   ;; path_ptr
+      (i32.const %d)  ;; path_len
+      (i32.const 1)   ;; oflags (create)
+      (i64.const 0x0000000000000002) ;; rights_base (RIGHT_FD_WRITE)
+      (i64.const 0x0000000000000000) ;; rights_inheriting
+      (i32.const 0)   ;; fdflags
+      (i32.const 208) ;; fd_out_ptr
+    ))
+    ;; fd is now at memory[208]
+    (local.set $fd (i32.load (i32.const 208)))
+    ;; Prepare iovec for writing
+    (i32.store (i32.const 300) (i32.const 100)) ;; ptr to string
+    (i32.store (i32.const 304) (i32.const %d))  ;; length
+    ;; Write to file
     (drop (call $fd_write
-      (i32.const 1)   ;; file descriptor 1 = stdout
-      (i32.const 100) ;; pointer to iovec array
-      (i32.const 1)   ;; number of iovecs
-      (i32.const 200) ;; pointer to nwritten result
+      (local.get $fd)
+      (i32.const 300)
+      (i32.const 1)
+      (i32.const 400)
     ))
   )
 )
-'
+', escape_wat_string(file_name), escape_wat_string(file_data), nchar(file_name), nchar(file_name), nchar(file_data))
 
-wasmer_compile_wat_ext(rt_wasi, hello_wasi_wat, "hello_wasi")
-#> [1] "Module 'hello_wasi' compiled successfully"
-wasmer_instantiate_ext(rt_wasi, "hello_wasi", "wasi_instance")
-#> [1] "Instance 'wasi_instance' created successfully"
+# Compile and instantiate the module
+wasmer_compile_wat_ext(rt_wasix, file_wasix_wat, "hello_wasix")
+#> [1] "Module 'hello_wasix' compiled successfully"
+wasmer_instantiate_ext(rt_wasix, "hello_wasix", "file_instance")
+#> [1] "Instance 'file_instance' created successfully"
 
-# Call the WASI _start function (prints "Hello from WASI!")
-# Note: WASI captured output is currently not exposed in R bindings
-# But the module executes successfully
-result <- wasmer_call_function_ext(rt_wasi, "wasi_instance", "_start", list())
+# Call the WASIX _start function (writes to file)
+result <- wasmer_call_function_ext(rt_wasix, "file_instance", "_start", list())
 result
 #> $success
 #> [1] TRUE
 #> 
 #> $values
 #> list()
+
+# Read the output file in R
+readLines(output_file)
+#> character(0)
 ```
 
 ## Pending issues

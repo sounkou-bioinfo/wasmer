@@ -2,18 +2,20 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_wasi_state_new_ext}
 \alias{wasmer_wasi_state_new_ext}
-\title{Create a WASI state for the runtime.}
+\title{Create a WASI or WASIX state for the runtime.}
 \usage{
-wasmer_wasi_state_new_ext(ptr, module_name)
+wasmer_wasi_state_new_ext(ptr, module_name, env_type)
 }
 \arguments{
 \item{ptr}{External pointer to WasmerRuntime}
 
-\item{module_name}{Name of the module (for WASI args)}
+\item{module_name}{Name of the module (for WASI/WASIX args)}
+
+\item{env_type}{Environment type: "wasi" (default) or "wasix"}
 }
 \value{
 TRUE if successful, FALSE otherwise
 }
 \description{
-Create a WASI state for the runtime.
+Create a WASI or WASIX state for the runtime.
 }

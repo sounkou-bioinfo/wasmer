@@ -269,13 +269,6 @@ wasmer_function_new_void_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_functi
 #' @export
 wasmer_runtime_new_with_compiler_ext <- function(compiler_name) .Call(wrap__wasmer_runtime_new_with_compiler_ext, compiler_name)
 
-#' Create a WASI state for the runtime.
-#' @param ptr External pointer to WasmerRuntime
-#' @param module_name Name of the module (for WASI args)
-#' @return TRUE if successful, FALSE otherwise
-#' @export
-wasmer_wasi_state_new_ext <- function(ptr, module_name) .Call(wrap__wasmer_wasi_state_new_ext, ptr, module_name)
-
 #' Instantiate a compiled module in the runtime, with a custom table import.
 #' @param ptr External pointer to WasmerRuntime
 #' @param module_name Name of the module to instantiate
@@ -284,6 +277,14 @@ wasmer_wasi_state_new_ext <- function(ptr, module_name) .Call(wrap__wasmer_wasi_
 #' @return Status message
 #' @export
 wasmer_instantiate_with_table_ext <- function(ptr, module_name, instance_name, table_ptr) .Call(wrap__wasmer_instantiate_with_table_ext, ptr, module_name, instance_name, table_ptr)
+
+#' Create a WASI or WASIX state for the runtime.
+#' @param ptr External pointer to WasmerRuntime
+#' @param module_name Name of the module (for WASI/WASIX args)
+#' @param env_type Environment type: "wasi" (default) or "wasix"
+#' @return TRUE if successful, FALSE otherwise
+#' @export
+wasmer_wasi_state_new_ext <- function(ptr, module_name, env_type) .Call(wrap__wasmer_wasi_state_new_ext, ptr, module_name, env_type)
 
 #' Explicitly shutdown the runtime, free resources, and clear the R external pointer
 #' @param ptr External pointer to WasmerRuntime
