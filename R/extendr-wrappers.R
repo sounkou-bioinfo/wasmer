@@ -276,5 +276,14 @@ wasmer_runtime_new_with_compiler_ext <- function(compiler_name) .Call(wrap__wasm
 #' @export
 wasmer_wasi_state_new_ext <- function(ptr, module_name) .Call(wrap__wasmer_wasi_state_new_ext, ptr, module_name)
 
+#' Instantiate a compiled module in the runtime, with a custom table import.
+#' @param ptr External pointer to WasmerRuntime
+#' @param module_name Name of the module to instantiate
+#' @param instance_name Name to register the instance under
+#' @param table_ptr External pointer to Table to import as "env.host_table"
+#' @return Status message
+#' @export
+wasmer_instantiate_with_table_ext <- function(ptr, module_name, instance_name, table_ptr) .Call(wrap__wasmer_instantiate_with_table_ext, ptr, module_name, instance_name, table_ptr)
+
 
 # nolint end

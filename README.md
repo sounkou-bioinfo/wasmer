@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x632d6e889d40>
+#> <pointer: 0x63de72d27790>
 ```
 
 ### Compiler Selection
@@ -206,9 +206,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.15µs  27.52µs    36368.        0B      0  
-#> 2 r_naive      3.29ms   3.43ms      291.    32.7KB     35.0
-#> 3 r_tailcall   10.7µs  11.41µs    84061.        0B     42.1
+#> 1 wasm        25.66µs  27.07µs    36151.        0B      0  
+#> 2 r_naive      3.27ms   3.29ms      299.    32.7KB     37.7
+#> 3 r_tailcall  10.42µs  11.04µs    85853.        0B     42.9
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -562,11 +562,11 @@ table_ptr <- wasmer_table_new_ext(runtime, 1L, 1L)
 wasmer_table_set_ext(runtime, table_ptr, 0L, next_id_func)
 #> [1] TRUE
 
-# WASM module that defines and uses a table
+# WASM module that imports and uses a table
 wat_table_call <- '
 (module
   (type $gen (func (result i32)))
-  (table 1 funcref)
+  (import "env" "host_table" (table 1 funcref))
   (func $call_next_id (export "call_next_id") (result i32)
     (call_indirect (type $gen) (i32.const 0))
   )
@@ -577,26 +577,26 @@ wat_table_call <- '
 wasmer_compile_wat_ext(runtime, wat_table_call, "table_module")
 #> [1] "Module 'table_module' compiled successfully"
 
-# Instantiate the module (no custom imports possible with current API)
-wasmer_instantiate_ext(runtime, "table_module", "table_instance")
-#> [1] "Instance 'table_instance' created successfully"
+# Instantiate the module, passing the table as an import
+wasmer_instantiate_with_table_ext(runtime, "table_module", "table_instance", table_ptr)
+#> [1] "Instance 'table_instance' created successfully with table import"
 
 # Call the WASM function, which calls the host function via the table
 result <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
 print(result)
 #> $success
-#> [1] FALSE
+#> [1] TRUE
 #> 
-#> $error
-#> [1] "Error calling function: RuntimeError: uninitialized element\n    at call_next_id (<module>[0]:0x32)"
+#> $values
+#> [1] 1
 
 result2 <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
 print(result2)
 #> $success
-#> [1] FALSE
+#> [1] TRUE
 #> 
-#> $error
-#> [1] "Error calling function: RuntimeError: uninitialized element\n    at call_next_id (<module>[0]:0x32)"
+#> $values
+#> [1] 2
 ```
 
 ### Available Typed Host Function Signatures

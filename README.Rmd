@@ -474,11 +474,11 @@ next_id_func <- wasmer_function_new_void_to_i32(runtime, host_next_id)
 table_ptr <- wasmer_table_new_ext(runtime, 1L, 1L)
 wasmer_table_set_ext(runtime, table_ptr, 0L, next_id_func)
 
-# WASM module that defines and uses a table
+# WASM module that imports and uses a table
 wat_table_call <- '
 (module
   (type $gen (func (result i32)))
-  (table 1 funcref)
+  (import "env" "host_table" (table 1 funcref))
   (func $call_next_id (export "call_next_id") (result i32)
     (call_indirect (type $gen) (i32.const 0))
   )
@@ -488,8 +488,8 @@ wat_table_call <- '
 # Compile the module
 wasmer_compile_wat_ext(runtime, wat_table_call, "table_module")
 
-# Instantiate the module (no custom imports possible with current API)
-wasmer_instantiate_ext(runtime, "table_module", "table_instance")
+# Instantiate the module, passing the table as an import
+wasmer_instantiate_with_table_ext(runtime, "table_module", "table_instance", table_ptr)
 
 # Call the WASM function, which calls the host function via the table
 result <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
@@ -497,6 +497,7 @@ print(result)
 
 result2 <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
 print(result2)
+
 ```
 
 ### Available Typed Host Function Signatures

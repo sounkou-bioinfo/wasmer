@@ -887,6 +887,39 @@ pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
     }
 }
 
+/// Instantiate a compiled module in the runtime, with a custom table import.
+/// @param ptr External pointer to WasmerRuntime
+/// @param module_name Name of the module to instantiate
+/// @param instance_name Name to register the instance under
+/// @param table_ptr External pointer to Table to import as "env.host_table"
+/// @return Status message
+/// @export
+#[extendr]
+pub fn wasmer_instantiate_with_table_ext(
+    mut ptr: ExternalPtr<WasmerRuntime>,
+    module_name: String,
+    instance_name: String,
+    mut table_ptr: ExternalPtr<Table>
+) -> String {
+    let runtime = ptr.as_mut();
+    if let Some(module) = runtime.modules.get(&module_name) {
+        let import_object = imports! {
+            "env" => {
+                "host_table" => table_ptr.as_mut().clone(),
+            }
+        };
+        match Instance::new(&mut runtime.store, module, &import_object) {
+            Ok(final_instance) => {
+                runtime.instances.insert(instance_name.clone(), final_instance.clone());
+                format!("Instance '{}' created successfully with table import", instance_name)
+            }
+            Err(e) => format!("Error creating instance: {}", e),
+        }
+    } else {
+        format!("Module '{}' not found", module_name)
+    }
+}
+
 
 /// Create a new WASM Table
 /// @param ptr External pointer to WasmerRuntime
@@ -1288,4 +1321,5 @@ extendr_module! {
     fn wasmer_function_new_void_to_i32;
     fn wasmer_runtime_new_with_compiler_ext;
     fn wasmer_wasi_state_new_ext;
+    fn wasmer_instantiate_with_table_ext;
 }
