@@ -9,7 +9,6 @@ use wasmer::{AsStoreRef, AsStoreMut};
 use wasmer::sys::EngineBuilder;
 use std::sync::atomic::{AtomicU32, Ordering};
 use wasmer_wasix::WasiFunctionEnv;
-
 thread_local! {
     static R_FUNCTION_REGISTRY: Lazy<RefCell<HashMap<u32, Robj>>> =
         Lazy::new(|| RefCell::new(HashMap::new()));
@@ -154,6 +153,7 @@ pub struct WasmerRuntime {
     #[allow(dead_code)]
     memory_manager: WasmerMemoryManager,
     wasi_env: Option<WasiFunctionEnv>,
+    shutdown: bool,
 }
 
 impl WasmerRuntime {
@@ -166,7 +166,34 @@ impl WasmerRuntime {
             env: None,
             memory_manager: WasmerMemoryManager::new(),
             wasi_env: None,
+            shutdown: false,
         }
+    }
+
+    /// Check if the runtime has been shutdown
+    fn is_shutdown(&self) -> bool {
+        self.shutdown
+    }
+
+    /// Mark the runtime as shutdown
+    fn set_shutdown(&mut self) {
+        self.shutdown = true;
+    }
+
+    /// Explicitly shutdown the runtime, freeing all modules, instances, registries, and store
+    /// This function is idempotent and safe to call multiple times.
+    pub fn shutdown_and_finalize(ptr: &mut ExternalPtr<Self>) {
+        let runtime = ptr.as_mut();
+        if !runtime.is_shutdown() {
+            runtime.modules.clear();
+            runtime.instances.clear();
+            runtime.r_function_registry.clear();
+            runtime.env = None;
+            runtime.wasi_env = None;
+            runtime.set_shutdown();
+        }
+        // No need to manually set the external pointer address to NULL.
+        // The finalizer will handle cleanup when the R object is collected.
     }
 
     /// Explicitly shutdown the runtime, freeing all modules, instances, and registries
@@ -180,15 +207,13 @@ impl WasmerRuntime {
     }
 }
 
-// All other functions below are NOT marked #[extendr]
-// They must be called from Rust or wrapped in R using external pointer logic
-/// Explicitly shutdown the runtime and free resources
+// Release the resources held by the runtime before the gc collects the external pointer
+/// Explicitly shutdown the runtime, free resources, and clear the R external pointer
 /// @param ptr External pointer to WasmerRuntime
 /// @export
 #[extendr]
-pub fn wasmer_runtime_shutdown(mut ptr: ExternalPtr<WasmerRuntime>) {
-    let runtime = ptr.as_mut();
-    runtime.shutdown();
+pub fn wasmer_runtime_release_ressources(mut ptr: ExternalPtr<WasmerRuntime>) {
+    WasmerRuntime::shutdown_and_finalize(&mut ptr);
 }
 fn wasmer_compile_wat(runtime: &mut WasmerRuntime, wat_code: String, module_name: String) -> String {
     match wat2wasm(wat_code.as_bytes()) {
@@ -640,6 +665,7 @@ pub fn wasmer_runtime_new_with_compiler_ext(compiler_name: String) -> ExternalPt
         env: None,
         memory_manager: WasmerMemoryManager::new(),
         wasi_env: None,
+        shutdown: false,
     };
     ExternalPtr::new(runtime)
 }
@@ -1340,5 +1366,5 @@ extendr_module! {
     fn wasmer_runtime_new_with_compiler_ext;
     fn wasmer_wasi_state_new_ext;
     fn wasmer_instantiate_with_table_ext;
-    fn wasmer_runtime_shutdown;
+    fn wasmer_runtime_release_ressources;
 }

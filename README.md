@@ -11,11 +11,13 @@ The `wasmer` package provides R bindings for the `rust` based
 allowing you to compile, instantiate, and execute WebAssembly modules
 directly from R. This opens up possibilities for high-performance
 computing, cross-language interoperability, and running untrusted code
-in a sandboxed environment. This is a wip.
+in a sandboxed environment. This is a wip and may be dropped for a pure
+C runtime.
 
 ## Installation
 
-This package uses {rextenr}, so you will need a rust installation
+This package uses [{rextendr}](https://github.com/extendr/rextendr), so
+you will need a Rust installation
 
 ``` r
 remotes::install_github("sounkou-bioinfo/wasmer")
@@ -41,22 +43,25 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x6081fafe64a0>
-# shudown
-wasmer_runtime_shutdown(runtime)
-
+#> <pointer: 0x5b696318b3c0>
+# can release ressources before the gc and the external pointer release
+# mechamism
+wasmer_runtime_release_ressources(runtime)
+rm(runtime)
 # Initialize with Cranelift (default)
 runtime <- wasmer_runtime_new_with_compiler_ext("cranelift")
-wasmer_runtime_shutdown(runtime)
+rm(runtime)
 # Initialize with Singlepass for fastest compilation
 runtime <- wasmer_runtime_new_with_compiler_ext("singlepass")
-wasmer_runtime_shutdown(runtime)
+rm(runtime)
 # LLVM is available only if package was built with LLVM support
 # (requires LLVM 18 on system)
 #runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
 # to continue with the toor, we create a runtime that will be re-using
 # only one runtime per process is recommended
-runtime <- wasmer_runtime_new()
+runtime <- wasmer_runtime_new_with_compiler_ext("cranelift")
+runtime
+#> <pointer: 0x5b6962802410>
 ```
 
 ### Compiler Selection
@@ -159,9 +164,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.13µs  27.35µs    36578.    2.61KB      0  
-#> 2 r_naive      3.33ms   3.41ms      293.   32.66KB     34.9
-#> 3 r_tailcall  10.57µs  11.16µs    85845.        0B     42.9
+#> 1 wasm        26.31µs  27.48µs    36055.    2.61KB      0  
+#> 2 r_naive      3.35ms   3.46ms      288.   32.66KB     35.2
+#> 3 r_tailcall  10.64µs  11.37µs    84161.        0B     42.1
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -491,9 +496,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] 2.001361
+#> [1] -2.238958
 sum(arr)
-#> [1] 2.001361
+#> [1] -2.238958
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 

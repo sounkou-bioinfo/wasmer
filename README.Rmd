@@ -19,10 +19,10 @@ knitr::opts_chunk$set(
 [![extendr](https://img.shields.io/badge/extendr-^0.8.1-276DC2)](https://extendr.github.io/extendr/extendr_api/)
 <!-- badges: end -->
 
-The `wasmer` package provides R bindings for the `rust` based [Wasmer](https://github.com/wasmerio/wasmer) WebAssembly runtime, allowing you to compile, instantiate, and execute WebAssembly modules directly from R. This opens up possibilities for high-performance computing, cross-language interoperability, and running untrusted code in a sandboxed environment. This is a wip.
+The `wasmer` package provides R bindings for the `rust` based [Wasmer](https://github.com/wasmerio/wasmer) WebAssembly runtime, allowing you to compile, instantiate, and execute WebAssembly modules directly from R. This opens up possibilities for high-performance computing, cross-language interoperability, and running untrusted code in a sandboxed environment. This is a wip and may be dropped for a pure C runtime.
 
 ## Installation
-This package uses {rextenr}, so you will need a rust installation
+This package uses [{rextendr}](https://github.com/extendr/rextendr), so you will need a Rust installation
 
 ```r
 remotes::install_github("sounkou-bioinfo/wasmer")
@@ -44,22 +44,23 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-# shudown
-wasmer_runtime_shutdown(runtime)
-
+# can release ressources before the gc and the external pointer release
+# mechamism
+wasmer_runtime_release_ressources(runtime)
+rm(runtime)
 # Initialize with Cranelift (default)
 runtime <- wasmer_runtime_new_with_compiler_ext("cranelift")
-wasmer_runtime_shutdown(runtime)
+rm(runtime)
 # Initialize with Singlepass for fastest compilation
 runtime <- wasmer_runtime_new_with_compiler_ext("singlepass")
-wasmer_runtime_shutdown(runtime)
+rm(runtime)
 # LLVM is available only if package was built with LLVM support
 # (requires LLVM 18 on system)
 #runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
 # to continue with the toor, we create a runtime that will be re-using
 # only one runtime per process is recommended
-runtime <- wasmer_runtime_new()
-
+runtime <- wasmer_runtime_new_with_compiler_ext("cranelift")
+runtime
 ```
 
 ### Compiler Selection
