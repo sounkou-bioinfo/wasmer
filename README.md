@@ -41,22 +41,22 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x63333d4c39b0>
+#> <pointer: 0x6081fafe64a0>
 # shudown
 wasmer_runtime_shutdown(runtime)
 
 # Initialize with Cranelift (default)
-rt_cranelift <- wasmer_runtime_new_with_compiler_ext("cranelift")
-wasmer_runtime_shutdown(rt_cranelift)
+runtime <- wasmer_runtime_new_with_compiler_ext("cranelift")
+wasmer_runtime_shutdown(runtime)
 # Initialize with Singlepass for fastest compilation
-rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
-wasmer_runtime_shutdown(rt_singlepass)
+runtime <- wasmer_runtime_new_with_compiler_ext("singlepass")
+wasmer_runtime_shutdown(runtime)
 # LLVM is available only if package was built with LLVM support
 # (requires LLVM 18 on system)
-runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
-#> Error getting compiler config: LLVM compiler support not enabled. Rebuild the package with LLVM support if you have LLVM 18 installed. Available compilers: cranelift, singlepass
+#runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
 # to continue with the toor, we create a runtime that will be re-using
 # only one runtime per process is recommended
+runtime <- wasmer_runtime_new()
 ```
 
 ### Compiler Selection
@@ -159,9 +159,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.13µs   26.6µs    36882.    2.61KB      0  
-#> 2 r_naive      3.35ms   3.43ms      292.   32.66KB     35.0
-#> 3 r_tailcall  10.67µs  11.38µs    84398.        0B     42.2
+#> 1 wasm        26.13µs  27.35µs    36578.    2.61KB      0  
+#> 2 r_naive      3.33ms   3.41ms      293.   32.66KB     34.9
+#> 3 r_tailcall  10.57µs  11.16µs    85845.        0B     42.9
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -491,9 +491,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] 0.6261168
+#> [1] 2.001361
 sum(arr)
-#> [1] 0.6261168
+#> [1] 2.001361
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 

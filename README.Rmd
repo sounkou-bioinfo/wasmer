@@ -48,16 +48,17 @@ runtime
 wasmer_runtime_shutdown(runtime)
 
 # Initialize with Cranelift (default)
-rt_cranelift <- wasmer_runtime_new_with_compiler_ext("cranelift")
-wasmer_runtime_shutdown(rt_cranelift)
+runtime <- wasmer_runtime_new_with_compiler_ext("cranelift")
+wasmer_runtime_shutdown(runtime)
 # Initialize with Singlepass for fastest compilation
-rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
-wasmer_runtime_shutdown(rt_singlepass)
+runtime <- wasmer_runtime_new_with_compiler_ext("singlepass")
+wasmer_runtime_shutdown(runtime)
 # LLVM is available only if package was built with LLVM support
 # (requires LLVM 18 on system)
-runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
+#runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
 # to continue with the toor, we create a runtime that will be re-using
 # only one runtime per process is recommended
+runtime <- wasmer_runtime_new()
 
 ```
 
