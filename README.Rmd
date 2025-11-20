@@ -330,7 +330,7 @@ result_bin$values[[1]]
 
 
 ## Register and Call an R Function from WASM
-
+This interface is very limited, refer to the function tables example.
 ```{r r-host-function-example}
 
 
@@ -364,7 +364,7 @@ result
 stopifnot(result$values[[1]] == 42)
 ```
 
-# WASM Memory
+## WASM Memory
 
 ### Simple WASM Memory Example
 
@@ -396,7 +396,7 @@ str <- wasmer_memory_read_string_ext(runtime, "inst", "memory", 0, 3)
 print(str) # Should print "ABC"
 ```
 
-##  Memory Demo: Write R Array, Sum in WASM
+### Write R Array, Sum in WASM
 
 This example demonstrates passing a numeric array from R to WASM memory, summing it in WASM, and reading the result back.
 
@@ -639,6 +639,16 @@ The package provides the following typed host function creators:
 - `wasmer_function_new_i32_to_void(runtime, rfun)` - (i32) -> void (for logging)
 - `wasmer_function_new_void_to_i32(runtime, rfun)` - () -> i32 (for generators)
 
+
+## Pending issues
+
+- [ ] Shudown the runtime 
+
+- [ ] WASI exploration
+
+- [ ] Compiler and engine interface
+
+- [ ] Tests, tests, tests
 
 ## LLM Usage Disclosure
 Code and documentation in this project have been generated with the assistance of the github Copilot LLM tools. While we have reviewed and edited the generated content, we acknowledge that LLM tools were used in the creation process and accordingly (since these models are trained on GPL code and other commons + proprietary software license is fake anyway) the code is released under GPL-3. So if you use this code in any way, you must comply with the GPL-3 license.

@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x56a0ab496ce0>
+#> <pointer: 0x59c29c2c4270>
 ```
 
 ### Compiler Selection
@@ -210,9 +210,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        25.57µs   26.8µs    37078.        0B      0  
-#> 2 r_naive      3.27ms    3.3ms      300.    32.7KB     34.9
-#> 3 r_tailcall  10.39µs     11µs    86912.        0B     43.5
+#> 1 wasm        26.16µs  27.51µs    35592.        0B      0  
+#> 2 r_naive      3.33ms   3.43ms      292.    32.7KB     35.0
+#> 3 r_tailcall  10.74µs  11.47µs    82608.        0B     41.3
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -403,6 +403,8 @@ result_bin$values[[1]]
 
 ## Register and Call an R Function from WASM
 
+This interface is very limited, refer to the function tables example.
+
 ``` r
 
 
@@ -447,7 +449,7 @@ result
 stopifnot(result$values[[1]] == 42)
 ```
 
-# WASM Memory
+## WASM Memory
 
 ### Simple WASM Memory Example
 
@@ -486,7 +488,7 @@ print(str) # Should print "ABC"
 #> [1] "ABC"
 ```
 
-## Memory Demo: Write R Array, Sum in WASM
+### Write R Array, Sum in WASM
 
 This example demonstrates passing a numeric array from R to WASM memory,
 summing it in WASM, and reading the result back.
@@ -540,9 +542,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] -1.492519
+#> [1] 0.8678485
 sum(arr)
-#> [1] -1.492519
+#> [1] 0.8678485
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 
@@ -804,6 +806,16 @@ The package provides the following typed host function creators:
   logging)
 - `wasmer_function_new_void_to_i32(runtime, rfun)` - () -\> i32 (for
   generators)
+
+## Pending issues
+
+- [ ] Shudown the runtime
+
+- [ ] WASI exploration
+
+- [ ] Compiler and engine interface
+
+- [ ] Tests, tests, tests
 
 ## LLM Usage Disclosure
 
