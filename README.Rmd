@@ -397,6 +397,56 @@ print(str) # Should print "ABC"
 
 This example shows how to write and read bytes and strings from WASM memory using Wasmer's R interface.
 
+#  Memory Demo: Write R Array, Sum in WASM
+
+This example demonstrates passing a numeric array from R to WASM memory, summing it in WASM, and reading the result back.
+
+```{r memory-demo}
+# WASM module that sums an array of f64 values in memory
+wat_sum_array <- '
+(module
+  (memory (export "memory") 1)
+  (func $sum_array (export "sum_array") (param $offset i32) (param $len i32) (result f64)
+    (local $i i32)
+    (local $sum f64)
+    (local.set $i (i32.const 0))
+    (local.set $sum (f64.const 0))
+    (block $break
+      (loop $loop
+        (br_if $break (i32.ge_u (local.get $i) (local.get $len)))
+        ;; Load f64 from memory: memory is byte-addressed, f64 is 8 bytes
+        (local.set $sum
+          (f64.add
+            (local.get $sum)
+            (f64.load (i32.add (local.get $offset) (i32.mul (local.get $i) (i32.const 8))))
+          )
+        )
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br $loop)
+      )
+    )
+    (local.get $sum)
+  )
+)
+'
+
+# Compile and instantiate
+wasmer_compile_wat_ext(runtime, wat_sum_array, "sum_mod")
+wasmer_instantiate_ext(runtime, "sum_mod", "sum_inst")
+
+# Generate R array and write to WASM memory
+arr <- rnorm(10)
+offset <- 0L  # start of memory
+raw_bytes <- writeBin(arr, raw(), size=8)  # f64 is 8 bytes
+wasmer_memory_write_ext(runtime, "sum_inst", "memory", offset, raw_bytes)
+
+# Call WASM sum_array(offset, length)
+result <- wasmer_call_function_ext(runtime, "sum_inst", "sum_array", list(offset, length(arr)))
+result
+sum(arr)
+stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
+```
+
 
 ## WASM Tables and Typed Host Functions
 

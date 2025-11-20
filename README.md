@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x57165995ce00>
+#> <pointer: 0x62eafc50f060>
 ```
 
 ### Compiler Selection
@@ -206,9 +206,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        25.61µs  26.86µs    37087.        0B      0  
-#> 2 r_naive      3.27ms   3.29ms      301.    32.7KB     34.7
-#> 3 r_tailcall  10.42µs  10.97µs    87197.        0B     43.6
+#> 1 wasm         26.2µs  27.49µs    35970.        0B      0  
+#> 2 r_naive      3.34ms   3.43ms      290.    32.7KB     35.1
+#> 3 r_tailcall  10.68µs  11.39µs    84284.        0B     42.2
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -481,6 +481,66 @@ print(str) # Should print "ABC"
 
 This example shows how to write and read bytes and strings from WASM
 memory using Wasmer’s R interface.
+
+# Memory Demo: Write R Array, Sum in WASM
+
+This example demonstrates passing a numeric array from R to WASM memory,
+summing it in WASM, and reading the result back.
+
+``` r
+# WASM module that sums an array of f64 values in memory
+wat_sum_array <- '
+(module
+  (memory (export "memory") 1)
+  (func $sum_array (export "sum_array") (param $offset i32) (param $len i32) (result f64)
+    (local $i i32)
+    (local $sum f64)
+    (local.set $i (i32.const 0))
+    (local.set $sum (f64.const 0))
+    (block $break
+      (loop $loop
+        (br_if $break (i32.ge_u (local.get $i) (local.get $len)))
+        ;; Load f64 from memory: memory is byte-addressed, f64 is 8 bytes
+        (local.set $sum
+          (f64.add
+            (local.get $sum)
+            (f64.load (i32.add (local.get $offset) (i32.mul (local.get $i) (i32.const 8))))
+          )
+        )
+        (local.set $i (i32.add (local.get $i) (i32.const 1)))
+        (br $loop)
+      )
+    )
+    (local.get $sum)
+  )
+)
+'
+
+# Compile and instantiate
+wasmer_compile_wat_ext(runtime, wat_sum_array, "sum_mod")
+#> [1] "Module 'sum_mod' compiled successfully"
+wasmer_instantiate_ext(runtime, "sum_mod", "sum_inst")
+#> [1] "Instance 'sum_inst' created successfully"
+
+# Generate R array and write to WASM memory
+arr <- rnorm(10)
+offset <- 0L  # start of memory
+raw_bytes <- writeBin(arr, raw(), size=8)  # f64 is 8 bytes
+wasmer_memory_write_ext(runtime, "sum_inst", "memory", offset, raw_bytes)
+#> [1] TRUE
+
+# Call WASM sum_array(offset, length)
+result <- wasmer_call_function_ext(runtime, "sum_inst", "sum_array", list(offset, length(arr)))
+result
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 0.8795723
+sum(arr)
+#> [1] 0.8795723
+stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
+```
 
 ## WASM Tables and Typed Host Functions
 
