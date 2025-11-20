@@ -12,7 +12,7 @@ wasmer_function_new_static_ext(ptr, rfun, `_name`)
 
 \item{rfun}{R function object}
 
-\item{name}{Character string for registry name}
+\item{_name}{Character string for registry name}
 }
 \value{
 External pointer to Function

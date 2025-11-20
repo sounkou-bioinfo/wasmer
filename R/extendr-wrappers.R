@@ -57,14 +57,14 @@ wasmer_list_exports_ext <- function(ptr, instance_name) .Call(wrap__wasmer_list_
 
 #' Register an R function for use as a host function in WASM (per-runtime)
 #' @param ptr External pointer to WasmerRuntime
-#' @param name Name to register the function under
+#' @param _name Name to register the function under
 #' @param fun R function object
 #' @return TRUE if successful
 #' @export
 wasmer_register_r_function_ext <- function(ptr, name, fun) .Call(wrap__wasmer_register_r_function_ext, ptr, name, fun)
 
 #' Math operations example
-#' @param runtime External pointer to WasmerRuntime
+#' @param ptr External pointer to WasmerRuntime
 #' @param a First integer
 #' @param b Second integer
 #' @return List with results of add and multiply
@@ -72,7 +72,7 @@ wasmer_register_r_function_ext <- function(ptr, name, fun) .Call(wrap__wasmer_re
 wasmer_math_example_ext <- function(ptr, a, b) .Call(wrap__wasmer_math_example_ext, ptr, a, b)
 
 #' Create a simple "Hello World" example
-#' @param runtime External pointer to WasmerRuntime
+#' @param ptr External pointer to WasmerRuntime
 #' @return String result from WASM hello function
 #' @export
 wasmer_hello_world_example_ext <- function(ptr) .Call(wrap__wasmer_hello_world_example_ext, ptr)
@@ -84,7 +84,7 @@ wasmer_hello_world_example_ext <- function(ptr) .Call(wrap__wasmer_hello_world_e
 wasmer_wat_to_wasm_ext <- function(wat_code) .Call(wrap__wasmer_wat_to_wasm_ext, wat_code)
 
 #' Create an instance with host functions for mathematical operations
-#' @param runtime External pointer to WasmerRuntime
+#' @param ptr External pointer to WasmerRuntime
 #' @param module_name String name of the module to instantiate
 #' @param instance_name String name to identify this instance
 #' @return Status message
@@ -92,7 +92,7 @@ wasmer_wat_to_wasm_ext <- function(wat_code) .Call(wrap__wasmer_wat_to_wasm_ext,
 wasmer_instantiate_with_math_imports_ext <- function(ptr, module_name, instance_name) .Call(wrap__wasmer_instantiate_with_math_imports_ext, ptr, module_name, instance_name)
 
 #' Advanced function calling with type safety
-#' @param runtime External pointer to WasmerRuntime
+#' @param ptr External pointer to WasmerRuntime
 #' @param instance_name String name of the instance
 #' @param function_name String name of the function to call
 #' @param args List of arguments with proper type conversion
@@ -101,7 +101,7 @@ wasmer_instantiate_with_math_imports_ext <- function(ptr, module_name, instance_
 wasmer_call_function_safe_ext <- function(ptr, instance_name, function_name, args) .Call(wrap__wasmer_call_function_safe_ext, ptr, instance_name, function_name, args)
 
 #' Example with host function imports
-#' @param runtime External pointer to WasmerRuntime
+#' @param ptr External pointer to WasmerRuntime
 #' @return List with results
 #' @export
 wasmer_host_function_example_ext <- function(ptr) .Call(wrap__wasmer_host_function_example_ext, ptr)
@@ -199,7 +199,7 @@ wasmer_table_get_ext <- function(ptr, table_ptr, index) .Call(wrap__wasmer_table
 #' @param rfun R function object
 #' @param arg_types Character vector of argument types (e.g. c("i32", "f64"))
 #' @param ret_types Character vector of return types (e.g. c("i32"))
-#' @param name Character string for registry name
+#' @param _name Character string for registry name
 #' @return External pointer to Function
 #' @export
 wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, `_name`) .Call(wrap__wasmer_function_new_ext, ptr, rfun, arg_types, ret_types, `_name`)
@@ -208,7 +208,7 @@ wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, `_name`) .C
 #' This is required for WASM tables and funcref use.
 #' @param ptr External pointer to WasmerRuntime
 #' @param rfun R function object
-#' @param name Character string for registry name
+#' @param _name Character string for registry name
 #' @return External pointer to Function
 #' @export
 wasmer_function_new_static_ext <- function(ptr, rfun, `_name`) .Call(wrap__wasmer_function_new_static_ext, ptr, rfun, `_name`)

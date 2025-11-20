@@ -7,11 +7,11 @@
 wasmer_instantiate_with_math_imports_ext(ptr, module_name, instance_name)
 }
 \arguments{
+\item{ptr}{External pointer to WasmerRuntime}
+
 \item{module_name}{String name of the module to instantiate}
 
 \item{instance_name}{String name to identify this instance}
-
-\item{runtime}{External pointer to WasmerRuntime}
 }
 \value{
 Status message

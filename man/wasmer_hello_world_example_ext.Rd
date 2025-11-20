@@ -7,7 +7,7 @@
 wasmer_hello_world_example_ext(ptr)
 }
 \arguments{
-\item{runtime}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime}
 }
 \value{
 String result from WASM hello function

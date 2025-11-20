@@ -373,7 +373,7 @@ pub fn wasmer_list_function_signatures_ext(mut ptr: ExternalPtr<WasmerRuntime>, 
 }
 
 /// Create a simple "Hello World" example
-/// @param runtime External pointer to WasmerRuntime
+/// @param ptr External pointer to WasmerRuntime
 /// @return String result from WASM hello function
 /// @export
 #[extendr]
@@ -411,7 +411,7 @@ pub fn wasmer_hello_world_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> St
 }
 
 /// Math operations example
-/// @param runtime External pointer to WasmerRuntime
+/// @param ptr External pointer to WasmerRuntime
 /// @param a First integer
 /// @param b Second integer
 /// @return List with results of add and multiply
@@ -469,7 +469,7 @@ pub fn wasmer_math_example_ext(mut ptr: ExternalPtr<WasmerRuntime>, a: i32, b: i
 }
 
 /// Create an instance with host functions for mathematical operations
-/// @param runtime External pointer to WasmerRuntime
+/// @param ptr External pointer to WasmerRuntime
 /// @param module_name String name of the module to instantiate
 /// @param instance_name String name to identify this instance
 /// @return Status message
@@ -502,7 +502,7 @@ pub fn wasmer_instantiate_with_math_imports_ext(mut ptr: ExternalPtr<WasmerRunti
 }
 
 /// Advanced function calling with type safety
-/// @param runtime External pointer to WasmerRuntime
+/// @param ptr External pointer to WasmerRuntime
 /// @param instance_name String name of the instance
 /// @param function_name String name of the function to call
 /// @param args List of arguments with proper type conversion
@@ -553,7 +553,7 @@ pub fn wasmer_call_function_safe_ext(mut ptr: ExternalPtr<WasmerRuntime>, instan
 }
 
 /// Example with host function imports
-/// @param runtime External pointer to WasmerRuntime
+/// @param ptr External pointer to WasmerRuntime
 /// @return List with results
 /// @export
 #[extendr]
@@ -782,7 +782,7 @@ pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
 
 /// Register an R function for use as a host function in WASM (per-runtime)
 /// @param ptr External pointer to WasmerRuntime
-/// @param name Name to register the function under
+/// @param _name Name to register the function under
 /// @param fun R function object
 /// @return TRUE if successful
 /// @export
@@ -1049,7 +1049,7 @@ pub fn wasmer_table_get_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: 
 /// @param rfun R function object
 /// @param arg_types Character vector of argument types (e.g. c("i32", "f64"))
 /// @param ret_types Character vector of return types (e.g. c("i32"))
-/// @param name Character string for registry name
+/// @param _name Character string for registry name
 /// @return External pointer to Function
 /// @export
 #[extendr]
@@ -1141,7 +1141,7 @@ pub fn wasmer_function_new_ext(
 /// This is required for WASM tables and funcref use.
 /// @param ptr External pointer to WasmerRuntime
 /// @param rfun R function object
-/// @param name Character string for registry name
+/// @param _name Character string for registry name
 /// @return External pointer to Function
 /// @export
 #[extendr]

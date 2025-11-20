@@ -9,9 +9,9 @@ wasmer_register_r_function_ext(ptr, name, fun)
 \arguments{
 \item{ptr}{External pointer to WasmerRuntime}
 
-\item{name}{Name to register the function under}
-
 \item{fun}{R function object}
+
+\item{_name}{Name to register the function under}
 }
 \value{
 TRUE if successful

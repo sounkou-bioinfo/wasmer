@@ -7,13 +7,13 @@
 wasmer_call_function_safe_ext(ptr, instance_name, function_name, args)
 }
 \arguments{
+\item{ptr}{External pointer to WasmerRuntime}
+
 \item{instance_name}{String name of the instance}
 
 \item{function_name}{String name of the function to call}
 
 \item{args}{List of arguments with proper type conversion}
-
-\item{runtime}{External pointer to WasmerRuntime}
 }
 \value{
 List with success flag and result or error

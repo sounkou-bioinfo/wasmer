@@ -15,7 +15,7 @@ wasmer_function_new_ext(ptr, rfun, arg_types, ret_types, `_name`)
 
 \item{ret_types}{Character vector of return types (e.g. c("i32"))}
 
-\item{name}{Character string for registry name}
+\item{_name}{Character string for registry name}
 }
 \value{
 External pointer to Function

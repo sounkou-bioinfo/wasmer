@@ -7,11 +7,11 @@
 wasmer_math_example_ext(ptr, a, b)
 }
 \arguments{
+\item{ptr}{External pointer to WasmerRuntime}
+
 \item{a}{First integer}
 
 \item{b}{Second integer}
-
-\item{runtime}{External pointer to WasmerRuntime}
 }
 \value{
 List with results of add and multiply

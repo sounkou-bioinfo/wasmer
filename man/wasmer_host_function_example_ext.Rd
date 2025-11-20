@@ -7,7 +7,7 @@
 wasmer_host_function_example_ext(ptr)
 }
 \arguments{
-\item{runtime}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime}
 }
 \value{
 List with results
