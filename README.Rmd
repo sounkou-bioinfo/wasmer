@@ -572,7 +572,8 @@ print(result_max)
 
 result_sqrt <- wasmer_call_function_ext(runtime, "table_instance", "call_sqrt", list(9.0))
 print(result_sqrt)
-
+result_sqrt <- wasmer_call_function_ext(runtime, "table_instance", "call_sqrt", list(9.115))
+print(result_sqrt)
 result_abs <- wasmer_call_function_ext(runtime, "table_instance", "call_abs", list(-42.0))
 print(result_abs)
 

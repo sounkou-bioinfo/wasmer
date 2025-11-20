@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5f15009a54a0>
+#> <pointer: 0x57165995ce00>
 ```
 
 ### Compiler Selection
@@ -206,9 +206,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.13µs  27.43µs    36233.        0B      0  
-#> 2 r_naive      3.41ms   3.44ms      289.    32.7KB     34.9
-#> 3 r_tailcall  10.63µs  11.38µs    84490.        0B     42.3
+#> 1 wasm        25.61µs  26.86µs    37087.        0B      0  
+#> 2 r_naive      3.27ms   3.29ms      301.    32.7KB     34.7
+#> 3 r_tailcall  10.42µs  10.97µs    87197.        0B     43.6
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -710,7 +710,13 @@ print(result_sqrt)
 #> 
 #> $values
 #> [1] 3
-
+result_sqrt <- wasmer_call_function_ext(runtime, "table_instance", "call_sqrt", list(9.115))
+print(result_sqrt)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 3.019106
 result_abs <- wasmer_call_function_ext(runtime, "table_instance", "call_abs", list(-42.0))
 print(result_abs)
 #> $success
