@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x59f6532f5cb0>
+#> <pointer: 0x5f15009a54a0>
 ```
 
 ### Compiler Selection
@@ -206,9 +206,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        27.16µs  27.49µs    36010.        0B      0  
-#> 2 r_naive      3.31ms   3.42ms      293.    32.7KB     34.8
-#> 3 r_tailcall  10.71µs  11.46µs    83488.        0B     41.8
+#> 1 wasm        26.13µs  27.43µs    36233.        0B      0  
+#> 2 r_naive      3.41ms   3.44ms      289.    32.7KB     34.9
+#> 3 r_tailcall  10.63µs  11.38µs    84490.        0B     42.3
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -560,7 +560,11 @@ next_id_func <- wasmer_function_new_void_to_i32(runtime, host_next_id)
 # Create WASM table and set host function
 
 # Create WASM table with 4 slots and set host functions
-table_ptr <- wasmer_table_new_ext(runtime, 4L, 4L)
+
+# Create WASM table with 5 slots and set host functions
+
+# Create WASM table with 9 slots and set host functions
+table_ptr <- wasmer_table_new_ext(runtime, 9L, 9L)
 wasmer_table_set_ext(runtime, table_ptr, 0L, next_id_func)   # slot 0: next_id
 #> [1] TRUE
 wasmer_table_set_ext(runtime, table_ptr, 1L, add_func)       # slot 1: add
@@ -568,6 +572,16 @@ wasmer_table_set_ext(runtime, table_ptr, 1L, add_func)       # slot 1: add
 wasmer_table_set_ext(runtime, table_ptr, 2L, square_func)    # slot 2: square
 #> [1] TRUE
 wasmer_table_set_ext(runtime, table_ptr, 3L, mul_func)       # slot 3: multiply
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 4L, double_func)    # slot 4: double
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 5L, avg_func)       # slot 5: avg (f64, f64) -> f64
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 6L, max_func)       # slot 6: max (f64, f64) -> f64
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 7L, sqrt_func)      # slot 7: sqrt (f64) -> f64
+#> [1] TRUE
+wasmer_table_set_ext(runtime, table_ptr, 8L, abs_func)       # slot 8: abs (f64) -> f64
 #> [1] TRUE
 
 # WASM module that imports and uses a table
@@ -577,9 +591,11 @@ wat_table_call <- '
   (type $gen (func (result i32)))
   (type $binop (func (param i32 i32) (result i32)))
   (type $unop (func (param i32) (result i32)))
+  (type $binopf64 (func (param f64 f64) (result f64)))
+  (type $unopf64 (func (param f64) (result f64)))
 
-  ;; Import a table with 4 funcref slots
-  (import "env" "host_table" (table 4 funcref))
+  ;; Import a table with 9 funcref slots
+  (import "env" "host_table" (table 9 funcref))
 
   ;; Call next_id (slot 0)
   (func $call_next_id (export "call_next_id") (result i32)
@@ -596,6 +612,26 @@ wat_table_call <- '
   ;; Call multiply (slot 3)
   (func $call_multiply (export "call_multiply") (param $x i32) (param $y i32) (result i32)
     (call_indirect (type $binop) (local.get $x) (local.get $y) (i32.const 3))
+  )
+  ;; Call double (slot 4)
+  (func $call_double (export "call_double") (param $x i32) (result i32)
+    (call_indirect (type $unop) (local.get $x) (i32.const 4))
+  )
+  ;; Call avg (slot 5)
+  (func $call_avg (export "call_avg") (param $x f64) (param $y f64) (result f64)
+    (call_indirect (type $binopf64) (local.get $x) (local.get $y) (i32.const 5))
+  )
+  ;; Call max (slot 6)
+  (func $call_max (export "call_max") (param $x f64) (param $y f64) (result f64)
+    (call_indirect (type $binopf64) (local.get $x) (local.get $y) (i32.const 6))
+  )
+  ;; Call sqrt (slot 7)
+  (func $call_sqrt (export "call_sqrt") (param $x f64) (result f64)
+    (call_indirect (type $unopf64) (local.get $x) (i32.const 7))
+  )
+  ;; Call abs (slot 8)
+  (func $call_abs (export "call_abs") (param $x f64) (result f64)
+    (call_indirect (type $unopf64) (local.get $x) (i32.const 8))
   )
 )
 '
@@ -637,6 +673,46 @@ print(result_square)
 
 result_multiply <- wasmer_call_function_ext(runtime, "table_instance", "call_multiply", list(6L, 7L))
 print(result_multiply)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 42
+
+result_double <- wasmer_call_function_ext(runtime, "table_instance", "call_double", list(21L))
+print(result_double)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 42
+
+result_avg <- wasmer_call_function_ext(runtime, "table_instance", "call_avg", list(1.5, 2.5))
+print(result_avg)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 2
+
+result_max <- wasmer_call_function_ext(runtime, "table_instance", "call_max", list(1.5, 2.5))
+print(result_max)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 2.5
+
+result_sqrt <- wasmer_call_function_ext(runtime, "table_instance", "call_sqrt", list(9.0))
+print(result_sqrt)
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> [1] 3
+
+result_abs <- wasmer_call_function_ext(runtime, "table_instance", "call_abs", list(-42.0))
+print(result_abs)
 #> $success
 #> [1] TRUE
 #> 
