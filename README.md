@@ -31,7 +31,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x62eafc50f060>
+#> <pointer: 0x5dbbfcda9960>
 ```
 
 ### Compiler Selection
@@ -206,9 +206,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm         26.2µs  27.49µs    35970.        0B      0  
-#> 2 r_naive      3.34ms   3.43ms      290.    32.7KB     35.1
-#> 3 r_tailcall  10.68µs  11.39µs    84284.        0B     42.2
+#> 1 wasm        26.14µs   27.4µs    36413.        0B      0  
+#> 2 r_naive      3.33ms   3.42ms      292.    32.7KB     35.1
+#> 3 r_tailcall  10.67µs  11.37µs    84464.        0B     42.3
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -443,9 +443,12 @@ result
 stopifnot(result$values[[1]] == 42)
 ```
 
-## Simple WASM Memory Example
+# WASM Memory
 
-This example demonstrates how to use Wasmer’s memory utilities from R.
+### Simple WASM Memory Example
+
+This example shows how to write and read bytes and strings from WASM
+memory using Wasmer’s R interface.
 
 ``` r
 # Compile a simple WAT module with exported memory
@@ -479,10 +482,7 @@ print(str) # Should print "ABC"
 #> [1] "ABC"
 ```
 
-This example shows how to write and read bytes and strings from WASM
-memory using Wasmer’s R interface.
-
-# Memory Demo: Write R Array, Sum in WASM
+## Memory Demo: Write R Array, Sum in WASM
 
 This example demonstrates passing a numeric array from R to WASM memory,
 summing it in WASM, and reading the result back.
@@ -536,9 +536,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] 0.8795723
+#> [1] 3.350959
 sum(arr)
-#> [1] 0.8795723
+#> [1] 3.350959
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 

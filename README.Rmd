@@ -364,10 +364,11 @@ result
 stopifnot(result$values[[1]] == 42)
 ```
 
+# WASM Memory
 
-## Simple WASM Memory Example
+### Simple WASM Memory Example
 
-This example demonstrates how to use Wasmer's memory utilities from R.
+This example shows how to write and read bytes and strings from WASM memory using Wasmer's R interface.
 
 ```{r memory}
 # Compile a simple WAT module with exported memory
@@ -395,9 +396,7 @@ str <- wasmer_memory_read_string_ext(runtime, "inst", "memory", 0, 3)
 print(str) # Should print "ABC"
 ```
 
-This example shows how to write and read bytes and strings from WASM memory using Wasmer's R interface.
-
-#  Memory Demo: Write R Array, Sum in WASM
+##  Memory Demo: Write R Array, Sum in WASM
 
 This example demonstrates passing a numeric array from R to WASM memory, summing it in WASM, and reading the result back.
 
