@@ -26,6 +26,8 @@ This package uses [{rextendr}](https://github.com/extendr/rextendr), so you will
 
 ```r
 remotes::install_github("sounkou-bioinfo/wasmer")
+or
+install.packages("wasmer", repos = c('https://sounkou-bioinfo.r-universe.dev', 'https://cloud.r-project.org'))
 ```
 ##  Usage
 
