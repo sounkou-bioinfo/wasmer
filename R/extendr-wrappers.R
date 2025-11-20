@@ -285,5 +285,10 @@ wasmer_wasi_state_new_ext <- function(ptr, module_name) .Call(wrap__wasmer_wasi_
 #' @export
 wasmer_instantiate_with_table_ext <- function(ptr, module_name, instance_name, table_ptr) .Call(wrap__wasmer_instantiate_with_table_ext, ptr, module_name, instance_name, table_ptr)
 
+#' Explicitly shutdown the runtime and free resources
+#' @param ptr External pointer to WasmerRuntime
+#' @export
+wasmer_runtime_shutdown <- function(ptr) invisible(.Call(wrap__wasmer_runtime_shutdown, ptr))
+
 
 # nolint end

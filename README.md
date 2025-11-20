@@ -31,7 +31,12 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x59c29c2c4270>
+#> <pointer: 0x5f8b00d8aa30>
+# shudown
+wasmer_runtime_shutdown(runtime)
+
+# to continue demo, we create a runtime to will be re-used
+runtime <- wasmer_runtime_new()
 ```
 
 ### Compiler Selection
@@ -58,67 +63,9 @@ rt_singlepass <- wasmer_runtime_new_with_compiler_ext("singlepass")
 # rt_llvm <- wasmer_runtime_new_with_compiler_ext("llvm")
 ```
 
-### WASI Support
-
-The package supports WASI (WebAssembly System Interface), allowing WASM
-modules to interact with system resources in a sandboxed way.
-
-``` r
-# Create a WASI-enabled runtime
-rt_wasi <- wasmer_runtime_new()
-
-# Create WASI environment (must be done before instantiation)
-wasmer_wasi_state_new_ext(rt_wasi, "hello_wasi")
-#> [1] TRUE
-
-# Simple WASI "Hello World" that prints to stdout
-# Note: WASI modules use wasi_snapshot_preview1 imports
-hello_wasi_wat <- '
-(module
-  ;; Import WASI fd_write function for writing to stdout
-  (import "wasi_snapshot_preview1" "fd_write" 
-    (func $fd_write (param i32 i32 i32 i32) (result i32)))
-  
-  (memory (export "memory") 1)
-  (data (i32.const 0) "Hello from WASI!\\0a")
-  
-  ;; _start is the default WASI entry point
-  (func $_start (export "_start")
-    ;; Write the iovec structure at address 100
-    ;; iovec:  [ptr, len]
-    (i32.store (i32.const 100) (i32.const 0))  ;; ptr to string
-    (i32.store (i32.const 104) (i32.const 17)) ;; length of string
-    
-    ;; Call fd_write(1, 100, 1, 200)
-    ;; fd=1 (stdout), iovs=100, iovs_len=1, nwritten=200
-    (drop (call $fd_write
-      (i32.const 1)   ;; file descriptor 1 = stdout
-      (i32.const 100) ;; pointer to iovec array
-      (i32.const 1)   ;; number of iovecs
-      (i32.const 200) ;; pointer to nwritten result
-    ))
-  )
-)
-'
-
-wasmer_compile_wat_ext(rt_wasi, hello_wasi_wat, "hello_wasi")
-#> [1] "Module 'hello_wasi' compiled successfully"
-wasmer_instantiate_ext(rt_wasi, "hello_wasi", "wasi_instance")
-#> [1] "Instance 'wasi_instance' created successfully"
-
-# Call the WASI _start function (prints "Hello from WASI!")
-# Note: WASI captured output is currently not exposed in R bindings
-# But the module executes successfully
-result <- wasmer_call_function_ext(rt_wasi, "wasi_instance", "_start", list())
-result
-#> $success
-#> [1] TRUE
-#> 
-#> $values
-#> list()
-```
-
 ### Math Operations compiled from Rust
+
+This is to test basic host functionality using functions in rust.
 
 ``` r
 # Test basic math operations
@@ -136,6 +83,10 @@ stopifnot(math_result$multiply == 15)
 ```
 
 ### Custom WebAssembly Modules
+
+Basic module tests
+
+#### Fibonaci
 
 ``` r
 # Define a Fibonacci function in WebAssembly Text Format
@@ -210,14 +161,14 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.16µs  27.51µs    35592.        0B      0  
-#> 2 r_naive      3.33ms   3.43ms      292.    32.7KB     35.0
-#> 3 r_tailcall  10.74µs  11.47µs    82608.        0B     41.3
+#> 1 wasm        26.12µs  27.36µs    36495.    2.61KB      0  
+#> 2 r_naive      3.34ms   3.43ms      292.   32.66KB     35.0
+#> 3 r_tailcall  10.45µs  11.18µs    85524.        0B     42.8
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
 
-### Calculate Fibonacci Numbers
+#### Calculate Fibonacci Numbers
 
 ``` r
 # Test fibonacci calculations with smaller numbers due to recursive implementation
@@ -351,7 +302,7 @@ stopifnot(all_prime_correct)
 ``` r
 # After instantiating a module, you can inspect its exported function signatures
 signatures <- wasmer_list_function_signatures_ext(runtime, "fib_instance")
-print(signatures)
+signatures
 #> $name
 #> [1] "fibonacci"
 #> 
@@ -363,7 +314,7 @@ print(signatures)
 
 # You can also inspect other instances
 signatures_prime <- wasmer_list_function_signatures_ext(runtime, "prime_instance")
-print(signatures_prime)
+signatures_prime
 #> $name
 #> [1] "is_prime"
 #> 
@@ -474,17 +425,17 @@ wasmer_memory_write_ext(runtime, "inst", "memory", 0, as.raw(c(65, 66, 67))) # W
 
 # Read bytes from memory
 bytes <- wasmer_memory_read_ext(runtime, "inst", "memory", 0, 3)
-print(bytes) # Should print raw vector: 41 42 43
+bytes # Should print raw vector: 41 42 43
 #> [1] 41 42 43
 
 # Grow memory by 1 page (64KiB)
 success <- wasmer_memory_grow_ext(runtime, "inst", "memory", 1L)
-print(success) # Should print TRUE if memory was grown
+success # Should print TRUE if memory was grown
 #> [1] TRUE
 
 # Read as string
 str <- wasmer_memory_read_string_ext(runtime, "inst", "memory", 0, 3)
-print(str) # Should print "ABC"
+str # Should print "ABC"
 #> [1] "ABC"
 ```
 
@@ -542,9 +493,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] 0.8678485
+#> [1] -1.274389
 sum(arr)
-#> [1] 0.8678485
+#> [1] -1.274389
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 
@@ -714,7 +665,7 @@ wasmer_instantiate_with_table_ext(runtime, "table_module", "table_instance", tab
 
 # Call each WASM function, which calls the corresponding host function via the table
 result_next_id <- wasmer_call_function_ext(runtime, "table_instance", "call_next_id", list())
-print(result_next_id)
+result_next_id
 #> $success
 #> [1] TRUE
 #> 
@@ -722,7 +673,7 @@ print(result_next_id)
 #> [1] 1
 
 result_add <- wasmer_call_function_ext(runtime, "table_instance", "call_add", list(10L, 32L))
-print(result_add)
+result_add
 #> $success
 #> [1] TRUE
 #> 
@@ -730,7 +681,7 @@ print(result_add)
 #> [1] 42
 
 result_square <- wasmer_call_function_ext(runtime, "table_instance", "call_square", list(7L))
-print(result_square)
+result_square
 #> $success
 #> [1] TRUE
 #> 
@@ -738,7 +689,7 @@ print(result_square)
 #> [1] 49
 
 result_multiply <- wasmer_call_function_ext(runtime, "table_instance", "call_multiply", list(6L, 7L))
-print(result_multiply)
+result_multiply
 #> $success
 #> [1] TRUE
 #> 
@@ -746,7 +697,7 @@ print(result_multiply)
 #> [1] 42
 
 result_double <- wasmer_call_function_ext(runtime, "table_instance", "call_double", list(21L))
-print(result_double)
+result_double
 #> $success
 #> [1] TRUE
 #> 
@@ -754,7 +705,7 @@ print(result_double)
 #> [1] 42
 
 result_avg <- wasmer_call_function_ext(runtime, "table_instance", "call_avg", list(1.5, 2.5))
-print(result_avg)
+result_avg
 #> $success
 #> [1] TRUE
 #> 
@@ -762,7 +713,7 @@ print(result_avg)
 #> [1] 2
 
 result_max <- wasmer_call_function_ext(runtime, "table_instance", "call_max", list(1.5, 2.5))
-print(result_max)
+result_max
 #> $success
 #> [1] TRUE
 #> 
@@ -770,21 +721,21 @@ print(result_max)
 #> [1] 2.5
 
 result_sqrt <- wasmer_call_function_ext(runtime, "table_instance", "call_sqrt", list(9.0))
-print(result_sqrt)
+result_sqrt
 #> $success
 #> [1] TRUE
 #> 
 #> $values
 #> [1] 3
 result_sqrt <- wasmer_call_function_ext(runtime, "table_instance", "call_sqrt", list(9.115))
-print(result_sqrt)
+result_sqrt
 #> $success
 #> [1] TRUE
 #> 
 #> $values
 #> [1] 3.019106
 result_abs <- wasmer_call_function_ext(runtime, "table_instance", "call_abs", list(-42.0))
-print(result_abs)
+result_abs
 #> $success
 #> [1] TRUE
 #> 
@@ -807,9 +758,67 @@ The package provides the following typed host function creators:
 - `wasmer_function_new_void_to_i32(runtime, rfun)` - () -\> i32 (for
   generators)
 
-## Pending issues
+## WASI Support
 
-- [ ] Shudown the runtime
+The package supports WASI (WebAssembly System Interface), allowing WASM
+modules to interact with system resources in a sandboxed way.
+
+``` r
+# Create a WASI-enabled runtime
+rt_wasi <- wasmer_runtime_new()
+
+# Create WASI environment (must be done before instantiation)
+wasmer_wasi_state_new_ext(rt_wasi, "hello_wasi")
+#> [1] TRUE
+
+# Simple WASI "Hello World" that prints to stdout
+# Note: WASI modules use wasi_snapshot_preview1 imports
+hello_wasi_wat <- '
+(module
+  ;; Import WASI fd_write function for writing to stdout
+  (import "wasi_snapshot_preview1" "fd_write" 
+    (func $fd_write (param i32 i32 i32 i32) (result i32)))
+  
+  (memory (export "memory") 1)
+  (data (i32.const 0) "Hello from WASI!\\0a")
+  
+  ;; _start is the default WASI entry point
+  (func $_start (export "_start")
+    ;; Write the iovec structure at address 100
+    ;; iovec:  [ptr, len]
+    (i32.store (i32.const 100) (i32.const 0))  ;; ptr to string
+    (i32.store (i32.const 104) (i32.const 17)) ;; length of string
+    
+    ;; Call fd_write(1, 100, 1, 200)
+    ;; fd=1 (stdout), iovs=100, iovs_len=1, nwritten=200
+    (drop (call $fd_write
+      (i32.const 1)   ;; file descriptor 1 = stdout
+      (i32.const 100) ;; pointer to iovec array
+      (i32.const 1)   ;; number of iovecs
+      (i32.const 200) ;; pointer to nwritten result
+    ))
+  )
+)
+'
+
+wasmer_compile_wat_ext(rt_wasi, hello_wasi_wat, "hello_wasi")
+#> [1] "Module 'hello_wasi' compiled successfully"
+wasmer_instantiate_ext(rt_wasi, "hello_wasi", "wasi_instance")
+#> [1] "Instance 'wasi_instance' created successfully"
+
+# Call the WASI _start function (prints "Hello from WASI!")
+# Note: WASI captured output is currently not exposed in R bindings
+# But the module executes successfully
+result <- wasmer_call_function_ext(rt_wasi, "wasi_instance", "_start", list())
+result
+#> $success
+#> [1] TRUE
+#> 
+#> $values
+#> list()
+```
+
+## Pending issues
 
 - [ ] WASI exploration
 

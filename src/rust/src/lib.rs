@@ -168,10 +168,28 @@ impl WasmerRuntime {
             wasi_env: None,
         }
     }
+
+    /// Explicitly shutdown the runtime, freeing all modules, instances, and registries
+    pub fn shutdown(&mut self) {
+        self.modules.clear();
+        self.instances.clear();
+        self.r_function_registry.clear();
+        self.env = None;
+        self.wasi_env = None;
+        // Optionally drop memory manager resources if needed
+    }
 }
 
 // All other functions below are NOT marked #[extendr]
 // They must be called from Rust or wrapped in R using external pointer logic
+/// Explicitly shutdown the runtime and free resources
+/// @param ptr External pointer to WasmerRuntime
+/// @export
+#[extendr]
+pub fn wasmer_runtime_shutdown(mut ptr: ExternalPtr<WasmerRuntime>) {
+    let runtime = ptr.as_mut();
+    runtime.shutdown();
+}
 fn wasmer_compile_wat(runtime: &mut WasmerRuntime, wat_code: String, module_name: String) -> String {
     match wat2wasm(wat_code.as_bytes()) {
         Ok(wasm_bytes) => {
@@ -1322,4 +1340,5 @@ extendr_module! {
     fn wasmer_runtime_new_with_compiler_ext;
     fn wasmer_wasi_state_new_ext;
     fn wasmer_instantiate_with_table_ext;
+    fn wasmer_runtime_shutdown;
 }
