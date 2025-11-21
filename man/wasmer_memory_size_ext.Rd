@@ -2,20 +2,36 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_memory_size_ext}
 \alias{wasmer_memory_size_ext}
-\title{Get the size of exported memory (in bytes and pages)}
+\title{Get WASM memory size}
 \usage{
 wasmer_memory_size_ext(ptr, instance_name, memory_name)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{Name of the instance}
+\item{instance_name}{Name of the instance.}
 
-\item{memory_name}{Name of the exported memory (default "memory")}
+\item{memory_name}{Name of the exported memory (default "memory").}
 }
 \value{
 List with size_bytes and size_pages
 }
 \description{
+Get the size of exported memory (in bytes and pages).
+}
+\details{
 Get the size of exported memory (in bytes and pages)
 }
+\examples{
+wasmer_memory_size_ext(ptr, "inst1", "memory")
+}
+\seealso{
+\code{\link[=wasmer_memory_read_ext]{wasmer_memory_read_ext()}}, \code{\link[=wasmer_memory_write_ext]{wasmer_memory_write_ext()}}, \code{\link[=wasmer_memory_read_string_ext]{wasmer_memory_read_string_ext()}}, \code{\link[=wasmer_memory_grow_ext]{wasmer_memory_grow_ext()}}
+
+Other memory operations: 
+\code{\link{wasmer_memory_grow_ext}()},
+\code{\link{wasmer_memory_read_ext}()},
+\code{\link{wasmer_memory_read_string_ext}()},
+\code{\link{wasmer_memory_write_ext}()}
+}
+\concept{memory operations}

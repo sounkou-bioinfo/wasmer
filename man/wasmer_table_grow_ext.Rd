@@ -2,22 +2,38 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_table_grow_ext}
 \alias{wasmer_table_grow_ext}
-\title{Grow a WASM Table}
+\title{Grow WASM Table}
 \usage{
 wasmer_table_grow_ext(ptr, table_ptr, delta, func_ptr)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{table_ptr}{External pointer to Table}
+\item{table_ptr}{External pointer to Table.}
 
-\item{delta}{Number of elements to grow}
+\item{delta}{Number of elements to grow.}
 
-\item{func_ptr}{External pointer to Function to fill new slots}
+\item{func_ptr}{External pointer to Function to fill new slots.}
 }
 \value{
 Previous size
 }
 \description{
+Grow a WASM Table by a number of elements.
+}
+\details{
 Grow a WASM Table
 }
+\examples{
+wasmer_table_grow_ext(ptr, table_ptr, 1, func_ptr)
+}
+\seealso{
+\code{\link[=wasmer_table_new_ext]{wasmer_table_new_ext()}}, \code{\link[=wasmer_table_set_ext]{wasmer_table_set_ext()}}, \code{\link[=wasmer_table_get_ext]{wasmer_table_get_ext()}}, \code{\link[=wasmer_get_exported_table_ext]{wasmer_get_exported_table_ext()}}
+
+Other table operations: 
+\code{\link{wasmer_get_exported_table_ext}()},
+\code{\link{wasmer_table_get_ext}()},
+\code{\link{wasmer_table_new_ext}()},
+\code{\link{wasmer_table_set_ext}()}
+}
+\concept{table operations}

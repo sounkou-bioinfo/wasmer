@@ -2,14 +2,14 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_list_exports_ext}
 \alias{wasmer_list_exports_ext}
-\title{List all exports from a WASM instance.}
+\title{List WASM exports}
 \usage{
 wasmer_list_exports_ext(ptr, instance_name)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{Name of the instance}
+\item{instance_name}{Name of the instance.}
 }
 \value{
 List with success flag and exports or error
@@ -17,3 +17,16 @@ List with success flag and exports or error
 \description{
 List all exports from a WASM instance.
 }
+\details{
+List all exports from a WASM instance
+}
+\examples{
+wasmer_list_exports_ext(ptr, "inst1")
+}
+\seealso{
+\code{\link[=wasmer_list_function_signatures_ext]{wasmer_list_function_signatures_ext()}}
+
+Other exports and signatures: 
+\code{\link{wasmer_list_function_signatures_ext}()}
+}
+\concept{exports and signatures}

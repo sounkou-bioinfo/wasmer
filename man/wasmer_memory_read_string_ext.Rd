@@ -2,24 +2,40 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_memory_read_string_ext}
 \alias{wasmer_memory_read_string_ext}
-\title{Read UTF-8 string from WASM memory}
+\title{Read WASM memory as string}
 \usage{
 wasmer_memory_read_string_ext(ptr, instance_name, memory_name, offset, length)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{Name of the instance}
+\item{instance_name}{Name of the instance.}
 
-\item{memory_name}{Name of the exported memory}
+\item{memory_name}{Name of the exported memory.}
 
-\item{offset}{Offset to start reading}
+\item{offset}{Offset to start reading.}
 
-\item{length}{Number of bytes to read}
+\item{length}{Number of bytes to read.}
 }
 \value{
 String
 }
 \description{
+Read UTF-8 string from WASM memory.
+}
+\details{
 Read UTF-8 string from WASM memory
 }
+\examples{
+wasmer_memory_read_string_ext(ptr, "inst1", "memory", 0, 10)
+}
+\seealso{
+\code{\link[=wasmer_memory_size_ext]{wasmer_memory_size_ext()}}, \code{\link[=wasmer_memory_read_ext]{wasmer_memory_read_ext()}}, \code{\link[=wasmer_memory_write_ext]{wasmer_memory_write_ext()}}, \code{\link[=wasmer_memory_grow_ext]{wasmer_memory_grow_ext()}}
+
+Other memory operations: 
+\code{\link{wasmer_memory_grow_ext}()},
+\code{\link{wasmer_memory_read_ext}()},
+\code{\link{wasmer_memory_size_ext}()},
+\code{\link{wasmer_memory_write_ext}()}
+}
+\concept{memory operations}

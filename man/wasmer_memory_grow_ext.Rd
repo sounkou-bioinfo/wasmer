@@ -2,22 +2,38 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_memory_grow_ext}
 \alias{wasmer_memory_grow_ext}
-\title{Grow WASM memory by a number of pages}
+\title{Grow WASM memory}
 \usage{
 wasmer_memory_grow_ext(ptr, instance_name, memory_name, pages)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{Name of the instance}
+\item{instance_name}{Name of the instance.}
 
-\item{memory_name}{Name of the exported memory}
+\item{memory_name}{Name of the exported memory.}
 
-\item{pages}{Number of pages to grow}
+\item{pages}{Number of pages to grow.}
 }
 \value{
 TRUE if successful
 }
 \description{
+Grow WASM memory by a number of pages.
+}
+\details{
 Grow WASM memory by a number of pages
 }
+\examples{
+wasmer_memory_grow_ext(ptr, "inst1", "memory", 1)
+}
+\seealso{
+\code{\link[=wasmer_memory_size_ext]{wasmer_memory_size_ext()}}, \code{\link[=wasmer_memory_read_ext]{wasmer_memory_read_ext()}}, \code{\link[=wasmer_memory_write_ext]{wasmer_memory_write_ext()}}, \code{\link[=wasmer_memory_read_string_ext]{wasmer_memory_read_string_ext()}}
+
+Other memory operations: 
+\code{\link{wasmer_memory_read_ext}()},
+\code{\link{wasmer_memory_read_string_ext}()},
+\code{\link{wasmer_memory_size_ext}()},
+\code{\link{wasmer_memory_write_ext}()}
+}
+\concept{memory operations}

@@ -2,16 +2,16 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_get_exported_table_ext}
 \alias{wasmer_get_exported_table_ext}
-\title{Get a pointer to an exported table from a WASM instance by name.}
+\title{Get exported WASM Table}
 \usage{
 wasmer_get_exported_table_ext(ptr, instance_name, table_export_name)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{Name of the instance}
+\item{instance_name}{Name of the instance.}
 
-\item{table_export_name}{Name of the exported table}
+\item{table_export_name}{Name of the exported table.}
 }
 \value{
 External pointer to Table, or NULL if not found
@@ -19,3 +19,19 @@ External pointer to Table, or NULL if not found
 \description{
 Get a pointer to an exported table from a WASM instance by name.
 }
+\details{
+Get a pointer to an exported table from a WASM instance by name
+}
+\examples{
+wasmer_get_exported_table_ext(ptr, "inst1", "table1")
+}
+\seealso{
+\code{\link[=wasmer_table_new_ext]{wasmer_table_new_ext()}}, \code{\link[=wasmer_table_set_ext]{wasmer_table_set_ext()}}, \code{\link[=wasmer_table_grow_ext]{wasmer_table_grow_ext()}}, \code{\link[=wasmer_table_get_ext]{wasmer_table_get_ext()}}
+
+Other table operations: 
+\code{\link{wasmer_table_get_ext}()},
+\code{\link{wasmer_table_grow_ext}()},
+\code{\link{wasmer_table_new_ext}()},
+\code{\link{wasmer_table_set_ext}()}
+}
+\concept{table operations}

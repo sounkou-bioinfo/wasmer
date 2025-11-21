@@ -2,18 +2,31 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_list_function_signatures_ext}
 \alias{wasmer_list_function_signatures_ext}
-\title{List exported function signatures (name, input types, output types) for a WASM instance}
+\title{List WASM function signatures}
 \usage{
 wasmer_list_function_signatures_ext(ptr, instance_name)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{Name of the instance}
+\item{instance_name}{Name of the instance.}
 }
 \value{
 Data frame with columns: name, params, results
 }
 \description{
+List exported function signatures (name, input types, output types) for a WASM instance.
+}
+\details{
 List exported function signatures (name, input types, output types) for a WASM instance
 }
+\examples{
+wasmer_list_function_signatures_ext(ptr, "inst1")
+}
+\seealso{
+\code{\link[=wasmer_list_exports_ext]{wasmer_list_exports_ext()}}
+
+Other exports and signatures: 
+\code{\link{wasmer_list_exports_ext}()}
+}
+\concept{exports and signatures}

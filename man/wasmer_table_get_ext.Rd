@@ -2,20 +2,36 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_table_get_ext}
 \alias{wasmer_table_get_ext}
-\title{Get a function reference from a WASM Table}
+\title{Get WASM Table entry}
 \usage{
 wasmer_table_get_ext(ptr, table_ptr, index)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{table_ptr}{External pointer to Table}
+\item{table_ptr}{External pointer to Table.}
 
-\item{index}{Index to get}
+\item{index}{Index to get.}
 }
 \value{
 External pointer to Function (or NULL)
 }
 \description{
+Get a function reference from a WASM Table.
+}
+\details{
 Get a function reference from a WASM Table
 }
+\examples{
+wasmer_table_get_ext(ptr, table_ptr, 0)
+}
+\seealso{
+\code{\link[=wasmer_table_new_ext]{wasmer_table_new_ext()}}, \code{\link[=wasmer_table_set_ext]{wasmer_table_set_ext()}}, \code{\link[=wasmer_table_grow_ext]{wasmer_table_grow_ext()}}, \code{\link[=wasmer_get_exported_table_ext]{wasmer_get_exported_table_ext()}}
+
+Other table operations: 
+\code{\link{wasmer_get_exported_table_ext}()},
+\code{\link{wasmer_table_grow_ext}()},
+\code{\link{wasmer_table_new_ext}()},
+\code{\link{wasmer_table_set_ext}()}
+}
+\concept{table operations}

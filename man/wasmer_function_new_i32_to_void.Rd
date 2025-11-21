@@ -2,18 +2,29 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_function_new_i32_to_void}
 \alias{wasmer_function_new_i32_to_void}
-\title{Create a Wasmer host function from an R function with static signature (i32) -> void}
+\title{Create host function (i32 -> void)}
 \usage{
 wasmer_function_new_i32_to_void(ptr, rfun)
 }
-\arguments{
-\item{ptr}{External pointer to WasmerRuntime}
-
-\item{rfun}{R function object}
-}
-\value{
-External pointer to Function
-}
 \description{
-Create a Wasmer host function from an R function with static signature (i32) -> void
+Create a WASM host function that takes an i32 and returns nothing, using an R function as the implementation.
 }
+\details{
+Create a WASM host function with signature i32 -> void
+}
+\examples{
+wasmer_function_new_i32_to_void(ptr, function(x) cat(x))
+}
+\seealso{
+\code{\link[=wasmer_register_r_function_ext]{wasmer_register_r_function_ext()}}, \code{\link[=wasmer_function_new_ext]{wasmer_function_new_ext()}}, \code{\link[=wasmer_function_new_i32_to_i32]{wasmer_function_new_i32_to_i32()}}, \code{\link[=wasmer_function_new_i32_i32_to_i32]{wasmer_function_new_i32_i32_to_i32()}}, \code{\link[=wasmer_function_new_f64_f64_to_f64]{wasmer_function_new_f64_f64_to_f64()}}, \code{\link[=wasmer_function_new_f64_to_f64]{wasmer_function_new_f64_to_f64()}}, \code{\link[=wasmer_function_new_void_to_i32]{wasmer_function_new_void_to_i32()}}
+
+Other host function registration: 
+\code{\link{wasmer_function_new_ext}()},
+\code{\link{wasmer_function_new_f64_f64_to_f64}()},
+\code{\link{wasmer_function_new_f64_to_f64}()},
+\code{\link{wasmer_function_new_i32_i32_to_i32}()},
+\code{\link{wasmer_function_new_i32_to_i32}()},
+\code{\link{wasmer_function_new_void_to_i32}()},
+\code{\link{wasmer_register_r_function_ext}()}
+}
+\concept{host function registration}

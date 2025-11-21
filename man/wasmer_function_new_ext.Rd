@@ -2,24 +2,43 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_function_new_ext}
 \alias{wasmer_function_new_ext}
-\title{Create a Wasmer host function from an R function with dynamic signature}
+\title{Create dynamic R host function}
 \usage{
 wasmer_function_new_ext(ptr, rfun, arg_types, ret_types, `_name`)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{rfun}{R function object}
+\item{rfun}{R function object.}
 
-\item{arg_types}{Character vector of argument types (e.g. c("i32", "f64"))}
+\item{arg_types}{Character vector of argument types (e.g. c("i32", "f64")).}
 
-\item{ret_types}{Character vector of return types (e.g. c("i32"))}
+\item{ret_types}{Character vector of return types (e.g. c("i32")).}
 
-\item{_name}{Character string for registry name}
+\item{_name}{Character string for registry name.}
 }
 \value{
 External pointer to Function
 }
 \description{
+Create a Wasmer host function from an R function with dynamic signature.
+}
+\details{
 Create a Wasmer host function from an R function with dynamic signature
 }
+\examples{
+wasmer_function_new_ext(ptr, function(x) x, c("i32"), c("i32"), "myfun")
+}
+\seealso{
+\code{\link[=wasmer_register_r_function_ext]{wasmer_register_r_function_ext()}}, \code{\link[=wasmer_function_new_i32_to_i32]{wasmer_function_new_i32_to_i32()}}, \code{\link[=wasmer_function_new_i32_i32_to_i32]{wasmer_function_new_i32_i32_to_i32()}}, \code{\link[=wasmer_function_new_f64_f64_to_f64]{wasmer_function_new_f64_f64_to_f64()}}, \code{\link[=wasmer_function_new_f64_to_f64]{wasmer_function_new_f64_to_f64()}}, \code{\link[=wasmer_function_new_i32_to_void]{wasmer_function_new_i32_to_void()}}, \code{\link[=wasmer_function_new_void_to_i32]{wasmer_function_new_void_to_i32()}}
+
+Other host function registration: 
+\code{\link{wasmer_function_new_f64_f64_to_f64}()},
+\code{\link{wasmer_function_new_f64_to_f64}()},
+\code{\link{wasmer_function_new_i32_i32_to_i32}()},
+\code{\link{wasmer_function_new_i32_to_i32}()},
+\code{\link{wasmer_function_new_i32_to_void}()},
+\code{\link{wasmer_function_new_void_to_i32}()},
+\code{\link{wasmer_register_r_function_ext}()}
+}
+\concept{host function registration}

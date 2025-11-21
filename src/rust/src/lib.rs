@@ -870,10 +870,17 @@ pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
 }
 
 /// Register an R function for use as a host function in WASM (per-runtime)
-/// @param ptr External pointer to WasmerRuntime
-/// @param _name Name to register the function under
-/// @param fun R function object
+///
+/// @title Register R host function
+/// @description Register an R function for use as a host function in WASM (per-runtime).
+/// @family host function registration
+/// @seealso [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param _name Name to register the function under.
+/// @param fun R function object.
 /// @return TRUE if successful
+/// @examples
+/// wasmer_register_r_function_ext(ptr, "myfun", function(x) x)
 /// @export
 #[extendr]
 pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name: String, fun: Robj) -> u32 {
@@ -903,10 +910,17 @@ pub fn wasmer_wat_to_wasm_ext(wat_code: String) -> Robj {
 }
 
 /// Get the size of exported memory (in bytes and pages)
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
-/// @param memory_name Name of the exported memory (default "memory")
+///
+/// @title Get WASM memory size
+/// @description Get the size of exported memory (in bytes and pages).
+/// @family memory operations
+/// @seealso [wasmer_memory_read_ext()], [wasmer_memory_write_ext()], [wasmer_memory_read_string_ext()], [wasmer_memory_grow_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
+/// @param memory_name Name of the exported memory (default "memory").
 /// @return List with size_bytes and size_pages
+/// @examples
+/// wasmer_memory_size_ext(ptr, "inst1", "memory")
 /// @export
 #[extendr]
 pub fn wasmer_memory_size_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String) -> List {
@@ -927,12 +941,19 @@ pub fn wasmer_memory_size_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
 }
 
 /// Read bytes from WASM memory
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
-/// @param memory_name Name of the exported memory
-/// @param offset Offset to start reading
-/// @param length Number of bytes to read
+///
+/// @title Read WASM memory
+/// @description Read bytes from WASM memory.
+/// @family memory operations
+/// @seealso [wasmer_memory_size_ext()], [wasmer_memory_write_ext()], [wasmer_memory_read_string_ext()], [wasmer_memory_grow_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
+/// @param memory_name Name of the exported memory.
+/// @param offset Offset to start reading.
+/// @param length Number of bytes to read.
 /// @return Raw vector of bytes
+/// @examples
+/// wasmer_memory_read_ext(ptr, "inst1", "memory", 0, 10)
 /// @export
 #[extendr]
 pub fn wasmer_memory_read_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, length: i32) -> Robj {
@@ -961,12 +982,19 @@ pub fn wasmer_memory_read_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
 }
 
 /// Write bytes to WASM memory
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
-/// @param memory_name Name of the exported memory
-/// @param offset Offset to start writing
-/// @param bytes Raw vector of bytes to write
+///
+/// @title Write WASM memory
+/// @description Write bytes to WASM memory.
+/// @family memory operations
+/// @seealso [wasmer_memory_size_ext()], [wasmer_memory_read_ext()], [wasmer_memory_read_string_ext()], [wasmer_memory_grow_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
+/// @param memory_name Name of the exported memory.
+/// @param offset Offset to start writing.
+/// @param bytes Raw vector of bytes to write.
 /// @return TRUE if successful
+/// @examples
+/// wasmer_memory_write_ext(ptr, "inst1", "memory", 0, as.raw(c(1,2,3)))
 /// @export
 #[extendr]
 pub fn wasmer_memory_write_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, bytes: Robj) -> bool {
@@ -992,12 +1020,19 @@ pub fn wasmer_memory_write_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
 }
 
 /// Read UTF-8 string from WASM memory
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
-/// @param memory_name Name of the exported memory
-/// @param offset Offset to start reading
-/// @param length Number of bytes to read
+///
+/// @title Read WASM memory as string
+/// @description Read UTF-8 string from WASM memory.
+/// @family memory operations
+/// @seealso [wasmer_memory_size_ext()], [wasmer_memory_read_ext()], [wasmer_memory_write_ext()], [wasmer_memory_grow_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
+/// @param memory_name Name of the exported memory.
+/// @param offset Offset to start reading.
+/// @param length Number of bytes to read.
 /// @return String
+/// @examples
+/// wasmer_memory_read_string_ext(ptr, "inst1", "memory", 0, 10)
 /// @export
 #[extendr]
 pub fn wasmer_memory_read_string_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, length: i32) -> String {
@@ -1025,11 +1060,18 @@ pub fn wasmer_memory_read_string_ext(mut ptr: ExternalPtr<WasmerRuntime>, instan
 }
 
 /// Grow WASM memory by a number of pages
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
-/// @param memory_name Name of the exported memory
-/// @param pages Number of pages to grow
+///
+/// @title Grow WASM memory
+/// @description Grow WASM memory by a number of pages.
+/// @family memory operations
+/// @seealso [wasmer_memory_size_ext()], [wasmer_memory_read_ext()], [wasmer_memory_write_ext()], [wasmer_memory_read_string_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
+/// @param memory_name Name of the exported memory.
+/// @param pages Number of pages to grow.
 /// @return TRUE if successful
+/// @examples
+/// wasmer_memory_grow_ext(ptr, "inst1", "memory", 1)
 /// @export
 #[extendr]
 pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, pages: u32) -> bool {
@@ -1087,10 +1129,17 @@ pub fn wasmer_instantiate_with_table_ext(
 
 
 /// Create a new WASM Table
-/// @param ptr External pointer to WasmerRuntime
-/// @param min Minimum size
-/// @param max Maximum size (optional)
+///
+/// @title Create WASM Table
+/// @description Create a new WASM Table.
+/// @family table operations
+/// @seealso [wasmer_table_set_ext()], [wasmer_table_grow_ext()], [wasmer_table_get_ext()], [wasmer_get_exported_table_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param min Minimum size.
+/// @param max Maximum size (optional).
 /// @return External pointer to Table
+/// @examples
+/// wasmer_table_new_ext(ptr, 1, 10)
 /// @export
 #[extendr]
 pub fn wasmer_table_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, min: u32, max: Option<u32>) -> ExternalPtr<Table> {
@@ -1101,11 +1150,18 @@ pub fn wasmer_table_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, min: u32, max: 
 }
 
 /// Set a function reference in a WASM Table
-/// @param ptr External pointer to WasmerRuntime
-/// @param table_ptr External pointer to Table
-/// @param index Index to set
-/// @param func_ptr External pointer to Function
+///
+/// @title Set WASM Table entry
+/// @description Set a function reference in a WASM Table.
+/// @family table operations
+/// @seealso [wasmer_table_new_ext()], [wasmer_table_grow_ext()], [wasmer_table_get_ext()], [wasmer_get_exported_table_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param table_ptr External pointer to Table.
+/// @param index Index to set.
+/// @param func_ptr External pointer to Function.
 /// @return TRUE if successful
+/// @examples
+/// wasmer_table_set_ext(ptr, table_ptr, 0, func_ptr)
 /// @export
 #[extendr]
 pub fn wasmer_table_set_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: ExternalPtr<Table>, index: u32, mut func_ptr: ExternalPtr<Function>) -> bool {
@@ -1116,11 +1172,18 @@ pub fn wasmer_table_set_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: 
 }
 
 /// Grow a WASM Table
-/// @param ptr External pointer to WasmerRuntime
-/// @param table_ptr External pointer to Table
-/// @param delta Number of elements to grow
-/// @param func_ptr External pointer to Function to fill new slots
+///
+/// @title Grow WASM Table
+/// @description Grow a WASM Table by a number of elements.
+/// @family table operations
+/// @seealso [wasmer_table_new_ext()], [wasmer_table_set_ext()], [wasmer_table_get_ext()], [wasmer_get_exported_table_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param table_ptr External pointer to Table.
+/// @param delta Number of elements to grow.
+/// @param func_ptr External pointer to Function to fill new slots.
 /// @return Previous size
+/// @examples
+/// wasmer_table_grow_ext(ptr, table_ptr, 1, func_ptr)
 /// @export
 #[extendr]
 pub fn wasmer_table_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: ExternalPtr<Table>, delta: u32, mut func_ptr: ExternalPtr<Function>) -> u32 {
@@ -1131,10 +1194,17 @@ pub fn wasmer_table_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr:
 }
 
 /// Get a function reference from a WASM Table
-/// @param ptr External pointer to WasmerRuntime
-/// @param table_ptr External pointer to Table
-/// @param index Index to get
+///
+/// @title Get WASM Table entry
+/// @description Get a function reference from a WASM Table.
+/// @family table operations
+/// @seealso [wasmer_table_new_ext()], [wasmer_table_set_ext()], [wasmer_table_grow_ext()], [wasmer_get_exported_table_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param table_ptr External pointer to Table.
+/// @param index Index to get.
 /// @return External pointer to Function (or NULL)
+/// @examples
+/// wasmer_table_get_ext(ptr, table_ptr, 0)
 /// @export
 #[extendr]
 pub fn wasmer_table_get_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: ExternalPtr<Table>, index: u32) -> Option<ExternalPtr<Function>> {
@@ -1148,12 +1218,19 @@ pub fn wasmer_table_get_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: 
 
 
 /// Create a Wasmer host function from an R function with dynamic signature
-/// @param ptr External pointer to WasmerRuntime
-/// @param rfun R function object
-/// @param arg_types Character vector of argument types (e.g. c("i32", "f64"))
-/// @param ret_types Character vector of return types (e.g. c("i32"))
-/// @param _name Character string for registry name
+///
+/// @title Create dynamic R host function
+/// @description Create a Wasmer host function from an R function with dynamic signature.
+/// @family host function registration
+/// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param rfun R function object.
+/// @param arg_types Character vector of argument types (e.g. c("i32", "f64")).
+/// @param ret_types Character vector of return types (e.g. c("i32")).
+/// @param _name Character string for registry name.
 /// @return External pointer to Function
+/// @examples
+/// wasmer_function_new_ext(ptr, function(x) x, c("i32"), c("i32"), "myfun")
 /// @export
 #[extendr]
 pub fn wasmer_function_new_ext(
@@ -1240,11 +1317,18 @@ pub fn wasmer_function_new_ext(
     ExternalPtr::new(fun)
 }
 
-/// Get a pointer to an exported table from a WASM instance by name.
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
-/// @param table_export_name Name of the exported table
+/// Get a pointer to an exported table from a WASM instance by name
+///
+/// @title Get exported WASM Table
+/// @description Get a pointer to an exported table from a WASM instance by name.
+/// @family table operations
+/// @seealso [wasmer_table_new_ext()], [wasmer_table_set_ext()], [wasmer_table_grow_ext()], [wasmer_table_get_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
+/// @param table_export_name Name of the exported table.
 /// @return External pointer to Table, or NULL if not found
+/// @examples
+/// wasmer_get_exported_table_ext(ptr, "inst1", "table1")
 /// @export
 #[extendr]
 pub fn wasmer_get_exported_table_ext(
@@ -1268,10 +1352,14 @@ pub fn wasmer_get_exported_table_ext(
 macro_rules! impl_r_host_function {
     // (i32) -> i32
     ($fn_name:ident, i32, i32) => {
-        /// Create a Wasmer host function from an R function with static signature (i32) -> i32
-        /// @param ptr External pointer to WasmerRuntime
-        /// @param rfun R function object
-        /// @return External pointer to Function
+        /// Create a WASM host function with signature i32 -> i32
+        ///
+        /// @title Create host function (i32 -> i32)
+        /// @description Create a WASM host function that takes an i32 and returns an i32, using an R function as the implementation.
+        /// @family host function registration
+        /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
+        /// @examples
+        /// wasmer_function_new_i32_to_i32(ptr, function(x) x)
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1293,10 +1381,14 @@ macro_rules! impl_r_host_function {
     };
     // (i32, i32) -> i32
     ($fn_name:ident, (i32, i32), i32) => {
-        /// Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
-        /// @param ptr External pointer to WasmerRuntime
-        /// @param rfun R function object
-        /// @return External pointer to Function
+        /// Create a WASM host function with signature (i32, i32) -> i32
+        ///
+        /// @title Create host function ((i32, i32) -> i32)
+        /// @description Create a WASM host function that takes two i32 arguments and returns an i32, using an R function as the implementation.
+        /// @family host function registration
+        /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
+        /// @examples
+        /// wasmer_function_new_i32_i32_to_i32(ptr, function(x, y) x + y)
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1318,10 +1410,14 @@ macro_rules! impl_r_host_function {
     };
     // (f64, f64) -> f64
     ($fn_name:ident, (f64, f64), f64) => {
-        /// Create a Wasmer host function from an R function with static signature (f64, f64) -> f64
-        /// @param ptr External pointer to WasmerRuntime
-        /// @param rfun R function object
-        /// @return External pointer to Function
+        /// Create a WASM host function with signature (f64, f64) -> f64
+        ///
+        /// @title Create host function ((f64, f64) -> f64)
+        /// @description Create a WASM host function that takes two f64 arguments and returns an f64, using an R function as the implementation.
+        /// @family host function registration
+        /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
+        /// @examples
+        /// wasmer_function_new_f64_f64_to_f64(ptr, function(x, y) x * y)
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1343,10 +1439,14 @@ macro_rules! impl_r_host_function {
     };
     // f64 -> f64
     ($fn_name:ident, f64, f64) => {
-        /// Create a Wasmer host function from an R function with static signature (f64) -> f64
-        /// @param ptr External pointer to WasmerRuntime
-        /// @param rfun R function object
-        /// @return External pointer to Function
+        /// Create a WASM host function with signature f64 -> f64
+        ///
+        /// @title Create host function (f64 -> f64)
+        /// @description Create a WASM host function that takes an f64 and returns an f64, using an R function as the implementation.
+        /// @family host function registration
+        /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
+        /// @examples
+        /// wasmer_function_new_f64_to_f64(ptr, function(x) sqrt(x))
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1368,10 +1468,14 @@ macro_rules! impl_r_host_function {
     };
     // i32 -> ()
     ($fn_name:ident, i32, ()) => {
-        /// Create a Wasmer host function from an R function with static signature (i32) -> void
-        /// @param ptr External pointer to WasmerRuntime
-        /// @param rfun R function object
-        /// @return External pointer to Function
+        /// Create a WASM host function with signature i32 -> void
+        ///
+        /// @title Create host function (i32 -> void)
+        /// @description Create a WASM host function that takes an i32 and returns nothing, using an R function as the implementation.
+        /// @family host function registration
+        /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_void_to_i32()]
+        /// @examples
+        /// wasmer_function_new_i32_to_void(ptr, function(x) cat(x))
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1392,10 +1496,14 @@ macro_rules! impl_r_host_function {
     };
     // () -> i32
     ($fn_name:ident, (), i32) => {
-        /// Create a Wasmer host function from an R function with static signature () -> i32
-        /// @param ptr External pointer to WasmerRuntime
-        /// @param rfun R function object
-        /// @return External pointer to Function
+        /// Create a WASM host function with signature void -> i32
+        ///
+        /// @title Create host function (void -> i32)
+        /// @description Create a WASM host function that takes no arguments and returns an i32, using an R function as the implementation.
+        /// @family host function registration
+        /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()]
+        /// @examples
+        /// wasmer_function_new_void_to_i32(ptr, function() 42)
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1416,11 +1524,17 @@ macro_rules! impl_r_host_function {
         }
     };
 }
+
 impl_r_host_function!(wasmer_function_new_i32_to_i32, i32, i32);
+
 impl_r_host_function!(wasmer_function_new_i32_i32_to_i32, (i32, i32), i32);
+
 impl_r_host_function!(wasmer_function_new_f64_f64_to_f64, (f64, f64), f64);
+
 impl_r_host_function!(wasmer_function_new_f64_to_f64, f64, f64);
+
 impl_r_host_function!(wasmer_function_new_i32_to_void, i32, ());
+
 impl_r_host_function!(wasmer_function_new_void_to_i32, (), i32);
 
 extendr_module! {
