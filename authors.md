@@ -4,6 +4,8 @@
 
 - **Sounkou Mahamane Toure**. Author, maintainer.
 
+- **Wasmer Authors**. Contributor.
+
 ## Citation
 
 Toure S (2025). *wasmer: WebAssembly Runtime for 'R' using 'Wasmer'*. R
