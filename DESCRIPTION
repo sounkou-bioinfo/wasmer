@@ -1,10 +1,13 @@
 Package: wasmer
 Title: WebAssembly Runtime for 'R' using 'Wasmer'
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R:c(
     person(given = "Sounkou Mahamane", family = "Toure",
-     email= "sounkoutoure@gmail.com", role = c("aut", "cre"))
-Description: 'R' bindings for the Wasmer WebAssembly runtime. This package allows you to 
+     email= "sounkoutoure@gmail.com", role = c("aut", "cre")),
+    person(given ="Wasmer Authors",
+     role = c("ctb"))
+)
+Description: 'R' bindings for the 'Wasmer' <https://github.com/wasmerio/wasmer/> WebAssembly runtime. This package allows you to 
     compile, instantiate, and execute WebAssembly modules from 'R', providing a bridge
     between 'R' and WebAssembly for high-performance computing and interoperability.
 License: GPL-3
