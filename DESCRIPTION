@@ -5,8 +5,7 @@ Authors@R:c(
     person(given = "Sounkou Mahamane", family = "Toure",
      email= "sounkoutoure@gmail.com", role = c("aut", "cre")),
     person(given ="Wasmer Authors",
-     role = c("ctb"))
-)
+     role = c("ctb")))
 Description: 'R' bindings for the 'Wasmer' <https://github.com/wasmerio/wasmer/> WebAssembly runtime. This package allows you to 
     compile, instantiate, and execute WebAssembly modules from 'R', providing a bridge
     between 'R' and WebAssembly for high-performance computing and interoperability.
