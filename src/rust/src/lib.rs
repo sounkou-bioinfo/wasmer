@@ -506,7 +506,9 @@ pub fn wasmer_math_example_ext(mut ptr: ExternalPtr<WasmerRuntime>, a: i32, b: i
 /// @param instance_name String name to identify this instance.
 /// @return Status message
 /// @examples
+/// \dontrun{
 /// wasmer_instantiate_with_math_imports_ext(ptr, "mod1", "inst1")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_instantiate_with_math_imports_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String, instance_name: String) -> String {
@@ -906,7 +908,9 @@ pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
 /// @param fun R function object.
 /// @return TRUE if successful
 /// @examples
+/// \dontrun{
 /// wasmer_register_r_function_ext(ptr, "myfun", function(x) x)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name: String, fun: Robj) -> u32 {
@@ -983,7 +987,9 @@ pub fn wasmer_memory_size_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
 /// @param length Number of bytes to read.
 /// @return Raw vector of bytes
 /// @examples
+/// \dontrun{
 /// wasmer_memory_read_ext(ptr, "inst1", "memory", 0, 10)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_memory_read_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, length: i32) -> Robj {
@@ -1024,7 +1030,9 @@ pub fn wasmer_memory_read_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
 /// @param bytes Raw vector of bytes to write.
 /// @return TRUE if successful
 /// @examples
+/// \dontrun{
 /// wasmer_memory_write_ext(ptr, "inst1", "memory", 0, as.raw(c(1,2,3)))
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_memory_write_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, bytes: Robj) -> bool {
@@ -1062,7 +1070,9 @@ pub fn wasmer_memory_write_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_nam
 /// @param length Number of bytes to read.
 /// @return String
 /// @examples
+/// \dontrun{
 /// wasmer_memory_read_string_ext(ptr, "inst1", "memory", 0, 10)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_memory_read_string_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, offset: i32, length: i32) -> String {
@@ -1101,7 +1111,9 @@ pub fn wasmer_memory_read_string_ext(mut ptr: ExternalPtr<WasmerRuntime>, instan
 /// @param pages Number of pages to grow.
 /// @return TRUE if successful
 /// @examples
+/// \dontrun{
 /// wasmer_memory_grow_ext(ptr, "inst1", "memory", 1)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String, pages: u32) -> bool {
@@ -1129,7 +1141,9 @@ pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
 /// @param table_ptr External pointer to Table to import as "env.host_table".
 /// @return Status message
 /// @examples
+/// \dontrun{
 /// wasmer_instantiate_with_table_ext(ptr, "mod1", "inst1", table_ptr)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_instantiate_with_table_ext(
@@ -1169,7 +1183,9 @@ pub fn wasmer_instantiate_with_table_ext(
 /// @param max Maximum size (optional).
 /// @return External pointer to Table
 /// @examples
+/// \dontrun{
 /// wasmer_table_new_ext(ptr, 1, 10)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_table_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, min: u32, max: Option<u32>) -> ExternalPtr<Table> {
@@ -1191,7 +1207,9 @@ pub fn wasmer_table_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, min: u32, max: 
 /// @param func_ptr External pointer to Function.
 /// @return TRUE if successful
 /// @examples
+/// \dontrun{
 /// wasmer_table_set_ext(ptr, table_ptr, 0, func_ptr)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_table_set_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: ExternalPtr<Table>, index: u32, mut func_ptr: ExternalPtr<Function>) -> bool {
@@ -1213,7 +1231,9 @@ pub fn wasmer_table_set_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: 
 /// @param func_ptr External pointer to Function to fill new slots.
 /// @return Previous size
 /// @examples
+/// \dontrun{
 /// wasmer_table_grow_ext(ptr, table_ptr, 1, func_ptr)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_table_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: ExternalPtr<Table>, delta: u32, mut func_ptr: ExternalPtr<Function>) -> u32 {
@@ -1234,7 +1254,9 @@ pub fn wasmer_table_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr:
 /// @param index Index to get.
 /// @return External pointer to Function (or NULL)
 /// @examples
+/// \dontrun{
 /// wasmer_table_get_ext(ptr, table_ptr, 0)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_table_get_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: ExternalPtr<Table>, index: u32) -> Option<ExternalPtr<Function>> {

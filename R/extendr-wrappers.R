@@ -111,7 +111,9 @@ wasmer_list_exports_ext <- function(ptr, instance_name) .Call(wrap__wasmer_list_
 #' @param fun R function object.
 #' @return TRUE if successful
 #' @examples
+#' \dontrun{
 #' wasmer_register_r_function_ext(ptr, "myfun", function(x) x)
+#' }
 #' @export
 wasmer_register_r_function_ext <- function(ptr, name, fun) .Call(wrap__wasmer_register_r_function_ext, ptr, name, fun)
 
@@ -173,7 +175,9 @@ wasmer_wat_to_wasm_ext <- function(wat_code) .Call(wrap__wasmer_wat_to_wasm_ext,
 #' @param instance_name String name to identify this instance.
 #' @return Status message
 #' @examples
+#' \dontrun{
 #' wasmer_instantiate_with_math_imports_ext(ptr, "mod1", "inst1")
+#' }
 #' @export
 wasmer_instantiate_with_math_imports_ext <- function(ptr, module_name, instance_name) .Call(wrap__wasmer_instantiate_with_math_imports_ext, ptr, module_name, instance_name)
 
@@ -256,7 +260,9 @@ wasmer_memory_size_ext <- function(ptr, instance_name, memory_name) .Call(wrap__
 #' @param length Number of bytes to read.
 #' @return Raw vector of bytes
 #' @examples
+#' \dontrun{
 #' wasmer_memory_read_ext(ptr, "inst1", "memory", 0, 10)
+#' }
 #' @export
 wasmer_memory_read_ext <- function(ptr, instance_name, memory_name, offset, length) .Call(wrap__wasmer_memory_read_ext, ptr, instance_name, memory_name, offset, length)
 
@@ -273,7 +279,9 @@ wasmer_memory_read_ext <- function(ptr, instance_name, memory_name, offset, leng
 #' @param bytes Raw vector of bytes to write.
 #' @return TRUE if successful
 #' @examples
+#' \dontrun{
 #' wasmer_memory_write_ext(ptr, "inst1", "memory", 0, as.raw(c(1,2,3)))
+#' }
 #' @export
 wasmer_memory_write_ext <- function(ptr, instance_name, memory_name, offset, bytes) .Call(wrap__wasmer_memory_write_ext, ptr, instance_name, memory_name, offset, bytes)
 
@@ -290,7 +298,9 @@ wasmer_memory_write_ext <- function(ptr, instance_name, memory_name, offset, byt
 #' @param length Number of bytes to read.
 #' @return String
 #' @examples
+#' \dontrun{
 #' wasmer_memory_read_string_ext(ptr, "inst1", "memory", 0, 10)
+#' }
 #' @export
 wasmer_memory_read_string_ext <- function(ptr, instance_name, memory_name, offset, length) .Call(wrap__wasmer_memory_read_string_ext, ptr, instance_name, memory_name, offset, length)
 
@@ -306,7 +316,9 @@ wasmer_memory_read_string_ext <- function(ptr, instance_name, memory_name, offse
 #' @param pages Number of pages to grow.
 #' @return TRUE if successful
 #' @examples
+#' \dontrun{
 #' wasmer_memory_grow_ext(ptr, "inst1", "memory", 1)
+#' }
 #' @export
 wasmer_memory_grow_ext <- function(ptr, instance_name, memory_name, pages) .Call(wrap__wasmer_memory_grow_ext, ptr, instance_name, memory_name, pages)
 
@@ -321,7 +333,9 @@ wasmer_memory_grow_ext <- function(ptr, instance_name, memory_name, pages) .Call
 #' @param max Maximum size (optional).
 #' @return External pointer to Table
 #' @examples
+#' \dontrun{
 #' wasmer_table_new_ext(ptr, 1, 10)
+#' }
 #' @export
 wasmer_table_new_ext <- function(ptr, min, max) .Call(wrap__wasmer_table_new_ext, ptr, min, max)
 
@@ -337,7 +351,9 @@ wasmer_table_new_ext <- function(ptr, min, max) .Call(wrap__wasmer_table_new_ext
 #' @param func_ptr External pointer to Function.
 #' @return TRUE if successful
 #' @examples
+#' \dontrun{
 #' wasmer_table_set_ext(ptr, table_ptr, 0, func_ptr)
+#' }
 #' @export
 wasmer_table_set_ext <- function(ptr, table_ptr, index, func_ptr) .Call(wrap__wasmer_table_set_ext, ptr, table_ptr, index, func_ptr)
 
@@ -353,7 +369,9 @@ wasmer_table_set_ext <- function(ptr, table_ptr, index, func_ptr) .Call(wrap__wa
 #' @param func_ptr External pointer to Function to fill new slots.
 #' @return Previous size
 #' @examples
+#' \dontrun{
 #' wasmer_table_grow_ext(ptr, table_ptr, 1, func_ptr)
+#' }
 #' @export
 wasmer_table_grow_ext <- function(ptr, table_ptr, delta, func_ptr) .Call(wrap__wasmer_table_grow_ext, ptr, table_ptr, delta, func_ptr)
 
@@ -368,7 +386,9 @@ wasmer_table_grow_ext <- function(ptr, table_ptr, delta, func_ptr) .Call(wrap__w
 #' @param index Index to get.
 #' @return External pointer to Function (or NULL)
 #' @examples
+#' \dontrun{
 #' wasmer_table_get_ext(ptr, table_ptr, 0)
+#' }
 #' @export
 wasmer_table_get_ext <- function(ptr, table_ptr, index) .Call(wrap__wasmer_table_get_ext, ptr, table_ptr, index)
 
@@ -513,7 +533,9 @@ wasmer_runtime_new_with_compiler_ext <- function(compiler_name) .Call(wrap__wasm
 #' @param table_ptr External pointer to Table to import as "env.host_table".
 #' @return Status message
 #' @examples
+#' \dontrun{
 #' wasmer_instantiate_with_table_ext(ptr, "mod1", "inst1", table_ptr)
+#' }
 #' @export
 wasmer_instantiate_with_table_ext <- function(ptr, module_name, instance_name, table_ptr) .Call(wrap__wasmer_instantiate_with_table_ext, ptr, module_name, instance_name, table_ptr)
 

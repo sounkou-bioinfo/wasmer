@@ -25,7 +25,9 @@ Instantiate a compiled WASM module in the runtime, with a custom table import.
 Instantiate a compiled module in the runtime, with a custom table import
 }
 \examples{
+\dontrun{
 wasmer_instantiate_with_table_ext(ptr, "mod1", "inst1", table_ptr)
+}
 }
 \seealso{
 \code{\link[=wasmer_instantiate_ext]{wasmer_instantiate_ext()}}, \code{\link[=wasmer_instantiate_with_math_imports_ext]{wasmer_instantiate_with_math_imports_ext()}}, \code{\link[=wasmer_wasi_state_new_ext]{wasmer_wasi_state_new_ext()}}

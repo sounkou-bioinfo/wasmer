@@ -23,7 +23,9 @@ Create a new WASM Table.
 Create a new WASM Table
 }
 \examples{
+\dontrun{
 wasmer_table_new_ext(ptr, 1, 10)
+}
 }
 \seealso{
 \code{\link[=wasmer_table_set_ext]{wasmer_table_set_ext()}}, \code{\link[=wasmer_table_grow_ext]{wasmer_table_grow_ext()}}, \code{\link[=wasmer_table_get_ext]{wasmer_table_get_ext()}}, \code{\link[=wasmer_get_exported_table_ext]{wasmer_get_exported_table_ext()}}

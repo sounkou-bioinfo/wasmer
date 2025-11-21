@@ -23,7 +23,9 @@ Instantiate a WASM module with host functions for mathematical operations.
 Create an instance with host functions for mathematical operations
 }
 \examples{
+\dontrun{
 wasmer_instantiate_with_math_imports_ext(ptr, "mod1", "inst1")
+}
 }
 \seealso{
 \code{\link[=wasmer_instantiate_ext]{wasmer_instantiate_ext()}}, \code{\link[=wasmer_instantiate_with_table_ext]{wasmer_instantiate_with_table_ext()}}, \code{\link[=wasmer_wasi_state_new_ext]{wasmer_wasi_state_new_ext()}}

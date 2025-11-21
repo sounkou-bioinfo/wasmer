@@ -23,7 +23,9 @@ Get a function reference from a WASM Table.
 Get a function reference from a WASM Table
 }
 \examples{
+\dontrun{
 wasmer_table_get_ext(ptr, table_ptr, 0)
+}
 }
 \seealso{
 \code{\link[=wasmer_table_new_ext]{wasmer_table_new_ext()}}, \code{\link[=wasmer_table_set_ext]{wasmer_table_set_ext()}}, \code{\link[=wasmer_table_grow_ext]{wasmer_table_grow_ext()}}, \code{\link[=wasmer_get_exported_table_ext]{wasmer_get_exported_table_ext()}}

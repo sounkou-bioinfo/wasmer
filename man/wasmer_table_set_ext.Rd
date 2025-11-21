@@ -25,7 +25,9 @@ Set a function reference in a WASM Table.
 Set a function reference in a WASM Table
 }
 \examples{
+\dontrun{
 wasmer_table_set_ext(ptr, table_ptr, 0, func_ptr)
+}
 }
 \seealso{
 \code{\link[=wasmer_table_new_ext]{wasmer_table_new_ext()}}, \code{\link[=wasmer_table_grow_ext]{wasmer_table_grow_ext()}}, \code{\link[=wasmer_table_get_ext]{wasmer_table_get_ext()}}, \code{\link[=wasmer_get_exported_table_ext]{wasmer_get_exported_table_ext()}}

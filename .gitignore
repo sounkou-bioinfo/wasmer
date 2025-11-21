@@ -36,3 +36,4 @@ Thumbs.db
 
 # Original wasmer repo (if present)
 wasmer_repo/
+docs

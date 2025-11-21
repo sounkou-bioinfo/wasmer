@@ -23,7 +23,9 @@ Register an R function for use as a host function in WASM (per-runtime).
 Register an R function for use as a host function in WASM (per-runtime)
 }
 \examples{
+\dontrun{
 wasmer_register_r_function_ext(ptr, "myfun", function(x) x)
+}
 }
 \seealso{
 \code{\link[=wasmer_function_new_ext]{wasmer_function_new_ext()}}, \code{\link[=wasmer_function_new_i32_to_i32]{wasmer_function_new_i32_to_i32()}}, \code{\link[=wasmer_function_new_i32_i32_to_i32]{wasmer_function_new_i32_i32_to_i32()}}, \code{\link[=wasmer_function_new_f64_f64_to_f64]{wasmer_function_new_f64_f64_to_f64()}}, \code{\link[=wasmer_function_new_f64_to_f64]{wasmer_function_new_f64_to_f64()}}, \code{\link[=wasmer_function_new_i32_to_void]{wasmer_function_new_i32_to_void()}}, \code{\link[=wasmer_function_new_void_to_i32]{wasmer_function_new_void_to_i32()}}

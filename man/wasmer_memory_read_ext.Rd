@@ -27,7 +27,9 @@ Read bytes from WASM memory.
 Read bytes from WASM memory
 }
 \examples{
+\dontrun{
 wasmer_memory_read_ext(ptr, "inst1", "memory", 0, 10)
+}
 }
 \seealso{
 \code{\link[=wasmer_memory_size_ext]{wasmer_memory_size_ext()}}, \code{\link[=wasmer_memory_write_ext]{wasmer_memory_write_ext()}}, \code{\link[=wasmer_memory_read_string_ext]{wasmer_memory_read_string_ext()}}, \code{\link[=wasmer_memory_grow_ext]{wasmer_memory_grow_ext()}}

@@ -27,7 +27,9 @@ Write bytes to WASM memory.
 Write bytes to WASM memory
 }
 \examples{
+\dontrun{
 wasmer_memory_write_ext(ptr, "inst1", "memory", 0, as.raw(c(1,2,3)))
+}
 }
 \seealso{
 \code{\link[=wasmer_memory_size_ext]{wasmer_memory_size_ext()}}, \code{\link[=wasmer_memory_read_ext]{wasmer_memory_read_ext()}}, \code{\link[=wasmer_memory_read_string_ext]{wasmer_memory_read_string_ext()}}, \code{\link[=wasmer_memory_grow_ext]{wasmer_memory_grow_ext()}}
