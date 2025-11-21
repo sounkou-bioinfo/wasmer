@@ -133,7 +133,7 @@ fib_r <- function(n) {
   return(fib_r(n-1) + fib_r(n-2))
 }
 
-# Tail-recursive using Tailcall (R >= 4.6.0, doesn't grow stack)
+# Tail-recursive using Tailcall 
 fib_tailcall <- function(n) {
   fib_iter <- function(a, b, count) {
     if (count == 0) {

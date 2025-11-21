@@ -45,7 +45,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x580b020da630>
+#> <pointer: 0x5698d7c50300>
 # can release ressources before the gc and the external pointer release
 # mechamism
 wasmer_runtime_release_ressources(runtime)
@@ -59,7 +59,7 @@ rm(runtime)
 gc()
 #>           used (Mb) gc trigger (Mb) max used (Mb)
 #> Ncells  519188 27.8    1125155 60.1   716477 38.3
-#> Vcells 1083019  8.3    8388608 64.0  2005466 15.4
+#> Vcells 1083011  8.3    8388608 64.0  2005466 15.4
 # LLVM is available only if package was built with LLVM support
 # (requires LLVM 18 on system)
 #runtime <- wasmer_runtime_new_with_compiler_ext("llvm")
@@ -67,7 +67,7 @@ gc()
 # only one runtime per process is recommended
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x580b014d8f80>
+#> <pointer: 0x5698d7b08930>
 ```
 
 ### Compiler Selection
@@ -140,7 +140,7 @@ fib_r <- function(n) {
   return(fib_r(n-1) + fib_r(n-2))
 }
 
-# Tail-recursive using Tailcall (R >= 4.6.0, doesn't grow stack)
+# Tail-recursive using Tailcall 
 fib_tailcall <- function(n) {
   fib_iter <- function(a, b, count) {
     if (count == 0) {
@@ -170,9 +170,9 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.13µs  27.41µs    36427.    2.61KB     3.64
-#> 2 r_naive      3.34ms   3.38ms      294.   32.66KB    70.1 
-#> 3 r_tailcall  10.62µs  11.34µs    85014.        0B    68.1
+#> 1 wasm        26.15µs  27.48µs    36219.    2.61KB     3.62
+#> 2 r_naive      3.33ms   3.39ms      294.   32.66KB    68.8 
+#> 3 r_tailcall  10.53µs  11.28µs    85808.        0B    77.3
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
 stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
 ```
@@ -502,9 +502,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] -1.096884
+#> [1] -2.579526
 sum(arr)
-#> [1] -1.096884
+#> [1] -2.579526
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 
