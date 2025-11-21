@@ -161,7 +161,7 @@ bench_results <- bench::mark(
 
 bench_results
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
-stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
+stopifnot(bench_results$r_naive[[1]] == bench_results$r_tailcall[[1]])
 ```
 
 #### Calculate Fibonacci Numbers

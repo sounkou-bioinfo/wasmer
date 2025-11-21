@@ -45,7 +45,7 @@ library(wasmer)
 # Create the Wasmer runtime (must be called first)
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5698d7c50300>
+#> <pointer: 0x5cbbfa8aa300>
 # can release ressources before the gc and the external pointer release
 # mechamism
 wasmer_runtime_release_ressources(runtime)
@@ -67,7 +67,7 @@ gc()
 # only one runtime per process is recommended
 runtime <- wasmer_runtime_new()
 runtime
-#> <pointer: 0x5698d7b08930>
+#> <pointer: 0x5cbbfa762930>
 ```
 
 ### Compiler Selection
@@ -170,11 +170,11 @@ bench_results
 #> # A tibble: 3 × 6
 #>   expression      min   median `itr/sec` mem_alloc `gc/sec`
 #>   <bch:expr> <bch:tm> <bch:tm>     <dbl> <bch:byt>    <dbl>
-#> 1 wasm        26.15µs  27.48µs    36219.    2.61KB     3.62
-#> 2 r_naive      3.33ms   3.39ms      294.   32.66KB    68.8 
-#> 3 r_tailcall  10.53µs  11.28µs    85808.        0B    77.3
+#> 1 wasm         26.1µs   27.4µs    36500.    2.61KB     3.65
+#> 2 r_naive       3.4ms   3.44ms      290.   32.66KB    69.3 
+#> 3 r_tailcall   10.6µs  11.44µs    84671.        0B    67.8
 stopifnot(bench_results$wasm[[1]] == bench_results$r_naive[[1]])
-stopifnot(bench_results$wasm[[1]] == bench_results$r_tailcall[[1]])
+stopifnot(bench_results$r_naive[[1]] == bench_results$r_tailcall[[1]])
 ```
 
 #### Calculate Fibonacci Numbers
@@ -502,9 +502,9 @@ result
 #> [1] TRUE
 #> 
 #> $values
-#> [1] -2.579526
+#> [1] -4.829397
 sum(arr)
-#> [1] -2.579526
+#> [1] -4.829397
 stopifnot(abs(sum(arr) - result$values[[1]]) < 1e-8)
 ```
 
