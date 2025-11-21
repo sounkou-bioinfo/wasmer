@@ -18,7 +18,9 @@ NULL
 #' @seealso [wasmer_runtime_new_with_compiler_ext()], [wasmer_runtime_release_ressources()]
 #' @return External pointer to WasmerRuntime
 #' @examples
+#' \dontrun{
 #' ptr <- wasmer_runtime_new()
+#' }
 #' @export
 wasmer_runtime_new <- function() .Call(wrap__wasmer_runtime_new)
 
@@ -33,7 +35,9 @@ wasmer_runtime_new <- function() .Call(wrap__wasmer_runtime_new)
 #' @param module_name Name to register the module under.
 #' @return Status message
 #' @examples
+#' \dontrun{
 #' wasmer_compile_wat_ext(ptr, wat_code, "mod1")
+#' }
 #' @export
 wasmer_compile_wat_ext <- function(ptr, wat_code, module_name) .Call(wrap__wasmer_compile_wat_ext, ptr, wat_code, module_name)
 
@@ -48,7 +52,9 @@ wasmer_compile_wat_ext <- function(ptr, wat_code, module_name) .Call(wrap__wasme
 #' @param module_name Name to register the module under.
 #' @return Status message
 #' @examples
+#' \dontrun{
 #' wasmer_compile_wasm_ext(ptr, wasm_bytes, "mod1")
+#' }
 #' @export
 wasmer_compile_wasm_ext <- function(ptr, wasm_bytes, module_name) .Call(wrap__wasmer_compile_wasm_ext, ptr, wasm_bytes, module_name)
 
@@ -72,7 +78,9 @@ wasmer_instantiate_ext <- function(ptr, module_name, instance_name) .Call(wrap__
 #' @param args Arguments as R list.
 #' @return List with success flag and result or error
 #' @examples
+#' \dontrun{
 #' wasmer_call_function_ext(ptr, "inst1", "add", list(1, 2))
+#' }
 #' @export
 wasmer_call_function_ext <- function(ptr, instance_name, function_name, args) .Call(wrap__wasmer_call_function_ext, ptr, instance_name, function_name, args)
 
@@ -86,7 +94,9 @@ wasmer_call_function_ext <- function(ptr, instance_name, function_name, args) .C
 #' @param instance_name Name of the instance.
 #' @return List with success flag and exports or error
 #' @examples
+#' \dontrun{
 #' wasmer_list_exports_ext(ptr, "inst1")
+#' }
 #' @export
 wasmer_list_exports_ext <- function(ptr, instance_name) .Call(wrap__wasmer_list_exports_ext, ptr, instance_name)
 
@@ -116,7 +126,9 @@ wasmer_register_r_function_ext <- function(ptr, name, fun) .Call(wrap__wasmer_re
 #' @param b Second integer.
 #' @return List with results of add and multiply
 #' @examples
+#' \dontrun{
 #' wasmer_math_example_ext(ptr, 2, 3)
+#' }
 #' @export
 wasmer_math_example_ext <- function(ptr, a, b) .Call(wrap__wasmer_math_example_ext, ptr, a, b)
 
@@ -129,7 +141,9 @@ wasmer_math_example_ext <- function(ptr, a, b) .Call(wrap__wasmer_math_example_e
 #' @param ptr External pointer to WasmerRuntime.
 #' @return String result from WASM hello function
 #' @examples
+#' \dontrun{
 #' wasmer_hello_world_example_ext(ptr)
+#' }
 #' @export
 wasmer_hello_world_example_ext <- function(ptr) .Call(wrap__wasmer_hello_world_example_ext, ptr)
 
@@ -142,7 +156,9 @@ wasmer_hello_world_example_ext <- function(ptr) .Call(wrap__wasmer_hello_world_e
 #' @param wat_code WAT code as a string.
 #' @return WASM binary as R raw vector, or error string if conversion fails
 #' @examples
+#' \dontrun{
 #' wasmer_wat_to_wasm_ext(wat_code)
+#' }
 #' @export
 wasmer_wat_to_wasm_ext <- function(wat_code) .Call(wrap__wasmer_wat_to_wasm_ext, wat_code)
 
@@ -173,7 +189,9 @@ wasmer_instantiate_with_math_imports_ext <- function(ptr, module_name, instance_
 #' @param args List of arguments with proper type conversion.
 #' @return List with success flag and result or error
 #' @examples
+#' \dontrun{
 #' wasmer_call_function_safe_ext(ptr, "inst1", "add", list(1, 2))
+#' }
 #' @export
 wasmer_call_function_safe_ext <- function(ptr, instance_name, function_name, args) .Call(wrap__wasmer_call_function_safe_ext, ptr, instance_name, function_name, args)
 
@@ -186,7 +204,9 @@ wasmer_call_function_safe_ext <- function(ptr, instance_name, function_name, arg
 #' @param ptr External pointer to WasmerRuntime.
 #' @return List with results
 #' @examples
+#' \dontrun{
 #' wasmer_host_function_example_ext(ptr)
+#' }
 #' @export
 wasmer_host_function_example_ext <- function(ptr) .Call(wrap__wasmer_host_function_example_ext, ptr)
 
@@ -200,7 +220,9 @@ wasmer_host_function_example_ext <- function(ptr) .Call(wrap__wasmer_host_functi
 #' @param instance_name Name of the instance.
 #' @return Data frame with columns: name, params, results
 #' @examples
+#' \dontrun{
 #' wasmer_list_function_signatures_ext(ptr, "inst1")
+#' }
 #' @export
 wasmer_list_function_signatures_ext <- function(ptr, instance_name) .Call(wrap__wasmer_list_function_signatures_ext, ptr, instance_name)
 
@@ -215,7 +237,9 @@ wasmer_list_function_signatures_ext <- function(ptr, instance_name) .Call(wrap__
 #' @param memory_name Name of the exported memory (default "memory").
 #' @return List with size_bytes and size_pages
 #' @examples
+#' \dontrun{
 #' wasmer_memory_size_ext(ptr, "inst1", "memory")
+#' }
 #' @export
 wasmer_memory_size_ext <- function(ptr, instance_name, memory_name) .Call(wrap__wasmer_memory_size_ext, ptr, instance_name, memory_name)
 
@@ -361,7 +385,9 @@ wasmer_table_get_ext <- function(ptr, table_ptr, index) .Call(wrap__wasmer_table
 #' @param _name Character string for registry name.
 #' @return External pointer to Function
 #' @examples
+#' \dontrun{
 #' wasmer_function_new_ext(ptr, function(x) x, c("i32"), c("i32"), "myfun")
+#' }
 #' @export
 wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, `_name`) .Call(wrap__wasmer_function_new_ext, ptr, rfun, arg_types, ret_types, `_name`)
 
@@ -376,7 +402,9 @@ wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, `_name`) .C
 #' @param table_export_name Name of the exported table.
 #' @return External pointer to Table, or NULL if not found
 #' @examples
+#' \dontrun{
 #' wasmer_get_exported_table_ext(ptr, "inst1", "table1")
+#' }
 #' @export
 wasmer_get_exported_table_ext <- function(ptr, instance_name, table_export_name) .Call(wrap__wasmer_get_exported_table_ext, ptr, instance_name, table_export_name)
 
@@ -387,7 +415,9 @@ wasmer_get_exported_table_ext <- function(ptr, instance_name, table_export_name)
 #' @family host function registration
 #' @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
 #' @examples
+#' \dontrun{
 #' wasmer_function_new_i32_to_i32(ptr, function(x) x)
+#' }
 #' @export
 wasmer_function_new_i32_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_i32_to_i32, ptr, rfun)
 
@@ -398,7 +428,9 @@ wasmer_function_new_i32_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_functio
 #' @family host function registration
 #' @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
 #' @examples
+#' \dontrun{
 #' wasmer_function_new_i32_i32_to_i32(ptr, function(x, y) x + y)
+#' }
 #' @export
 wasmer_function_new_i32_i32_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_i32_i32_to_i32, ptr, rfun)
 
@@ -409,7 +441,9 @@ wasmer_function_new_i32_i32_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_fun
 #' @family host function registration
 #' @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
 #' @examples
+#' \dontrun{
 #' wasmer_function_new_f64_f64_to_f64(ptr, function(x, y) x * y)
+#' }
 #' @export
 wasmer_function_new_f64_f64_to_f64 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_f64_f64_to_f64, ptr, rfun)
 
@@ -420,7 +454,9 @@ wasmer_function_new_f64_f64_to_f64 <- function(ptr, rfun) .Call(wrap__wasmer_fun
 #' @family host function registration
 #' @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
 #' @examples
+#' \dontrun{
 #' wasmer_function_new_f64_to_f64(ptr, function(x) sqrt(x))
+#' }
 #' @export
 wasmer_function_new_f64_to_f64 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_f64_to_f64, ptr, rfun)
 
@@ -431,7 +467,9 @@ wasmer_function_new_f64_to_f64 <- function(ptr, rfun) .Call(wrap__wasmer_functio
 #' @family host function registration
 #' @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_void_to_i32()]
 #' @examples
+#' \dontrun{
 #' wasmer_function_new_i32_to_void(ptr, function(x) cat(x))
+#' }
 #' @export
 wasmer_function_new_i32_to_void <- function(ptr, rfun) .Call(wrap__wasmer_function_new_i32_to_void, ptr, rfun)
 
@@ -442,7 +480,9 @@ wasmer_function_new_i32_to_void <- function(ptr, rfun) .Call(wrap__wasmer_functi
 #' @family host function registration
 #' @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()]
 #' @examples
+#' \dontrun{
 #' wasmer_function_new_void_to_i32(ptr, function() 42)
+#' }
 #' @export
 wasmer_function_new_void_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_void_to_i32, ptr, rfun)
 
@@ -455,7 +495,9 @@ wasmer_function_new_void_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_functi
 #' @param compiler_name Name of the compiler ("cranelift", "singlepass").
 #' @return External pointer to WasmerRuntime
 #' @examples
+#' \dontrun{
 #' ptr <- wasmer_runtime_new_with_compiler_ext("cranelift")
+#' }
 #' @export
 wasmer_runtime_new_with_compiler_ext <- function(compiler_name) .Call(wrap__wasmer_runtime_new_with_compiler_ext, compiler_name)
 
@@ -486,7 +528,9 @@ wasmer_instantiate_with_table_ext <- function(ptr, module_name, instance_name, t
 #' @param env_type Environment type: "wasi" (default) or "wasix".
 #' @return TRUE if successful, FALSE otherwise
 #' @examples
+#' \dontrun{
 #' wasmer_wasi_state_new_ext(ptr, "mod1", "wasi")
+#' }
 #' @export
 wasmer_wasi_state_new_ext <- function(ptr, module_name, env_type) .Call(wrap__wasmer_wasi_state_new_ext, ptr, module_name, env_type)
 
@@ -499,7 +543,9 @@ wasmer_wasi_state_new_ext <- function(ptr, module_name, env_type) .Call(wrap__wa
 #' @param ptr External pointer to WasmerRuntime.
 #' @return NULL (invisible)
 #' @examples
+#' \dontrun{
 #' wasmer_runtime_release_ressources(ptr)
+#' }
 #' @export
 wasmer_runtime_release_ressources <- function(ptr) invisible(.Call(wrap__wasmer_runtime_release_ressources, ptr))
 

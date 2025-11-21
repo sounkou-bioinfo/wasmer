@@ -21,7 +21,9 @@ List all exports from a WASM instance.
 List all exports from a WASM instance
 }
 \examples{
+\dontrun{
 wasmer_list_exports_ext(ptr, "inst1")
+}
 }
 \seealso{
 \code{\link[=wasmer_list_function_signatures_ext]{wasmer_list_function_signatures_ext()}}

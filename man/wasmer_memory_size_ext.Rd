@@ -23,7 +23,9 @@ Get the size of exported memory (in bytes and pages).
 Get the size of exported memory (in bytes and pages)
 }
 \examples{
+\dontrun{
 wasmer_memory_size_ext(ptr, "inst1", "memory")
+}
 }
 \seealso{
 \code{\link[=wasmer_memory_read_ext]{wasmer_memory_read_ext()}}, \code{\link[=wasmer_memory_write_ext]{wasmer_memory_write_ext()}}, \code{\link[=wasmer_memory_read_string_ext]{wasmer_memory_read_string_ext()}}, \code{\link[=wasmer_memory_grow_ext]{wasmer_memory_grow_ext()}}

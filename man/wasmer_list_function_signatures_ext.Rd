@@ -21,7 +21,9 @@ List exported function signatures (name, input types, output types) for a WASM i
 List exported function signatures (name, input types, output types) for a WASM instance
 }
 \examples{
+\dontrun{
 wasmer_list_function_signatures_ext(ptr, "inst1")
+}
 }
 \seealso{
 \code{\link[=wasmer_list_exports_ext]{wasmer_list_exports_ext()}}

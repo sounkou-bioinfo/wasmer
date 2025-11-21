@@ -23,7 +23,9 @@ Example WASM module for math operations.
 Math operations example
 }
 \examples{
+\dontrun{
 wasmer_math_example_ext(ptr, 2, 3)
+}
 }
 \seealso{
 \code{\link[=wasmer_call_function_ext]{wasmer_call_function_ext()}}, \code{\link[=wasmer_call_function_safe_ext]{wasmer_call_function_safe_ext()}}, \code{\link[=wasmer_host_function_example_ext]{wasmer_host_function_example_ext()}}, \code{\link[=wasmer_hello_world_example_ext]{wasmer_hello_world_example_ext()}}

@@ -19,7 +19,9 @@ Convert WebAssembly Text (WAT) to WASM binary and return as R raw vector.
 Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector
 }
 \examples{
+\dontrun{
 wasmer_wat_to_wasm_ext(wat_code)
+}
 }
 \seealso{
 \code{\link[=wasmer_compile_wat_ext]{wasmer_compile_wat_ext()}}, \code{\link[=wasmer_compile_wasm_ext]{wasmer_compile_wasm_ext()}}

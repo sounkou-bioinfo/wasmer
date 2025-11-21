@@ -23,7 +23,9 @@ Compile a WebAssembly Text (WAT) module and add it to the runtime.
 Compile a WAT (WebAssembly Text) module and add it to the runtime
 }
 \examples{
+\dontrun{
 wasmer_compile_wat_ext(ptr, wat_code, "mod1")
+}
 }
 \seealso{
 \code{\link[=wasmer_compile_wasm_ext]{wasmer_compile_wasm_ext()}}, \code{\link[=wasmer_wat_to_wasm_ext]{wasmer_wat_to_wasm_ext()}}

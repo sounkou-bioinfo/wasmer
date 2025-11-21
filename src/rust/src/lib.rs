@@ -207,7 +207,9 @@ impl WasmerRuntime {
 /// @param ptr External pointer to WasmerRuntime.
 /// @return NULL (invisible)
 /// @examples
+/// \dontrun{
 /// wasmer_runtime_release_ressources(ptr)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_runtime_release_ressources(mut ptr: ExternalPtr<WasmerRuntime>) {
@@ -348,7 +350,9 @@ fn wasmer_list_exports(runtime: &mut WasmerRuntime, instance_name: String) -> Li
 /// @param instance_name Name of the instance.
 /// @return Data frame with columns: name, params, results
 /// @examples
+/// \dontrun{
 /// wasmer_list_function_signatures_ext(ptr, "inst1")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_list_function_signatures_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String) -> List {
@@ -386,7 +390,9 @@ pub fn wasmer_list_function_signatures_ext(mut ptr: ExternalPtr<WasmerRuntime>, 
 /// @param ptr External pointer to WasmerRuntime.
 /// @return String result from WASM hello function
 /// @examples
+/// \dontrun{
 /// wasmer_hello_world_example_ext(ptr)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_hello_world_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> String {
@@ -433,7 +439,9 @@ pub fn wasmer_hello_world_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> St
 /// @param b Second integer.
 /// @return List with results of add and multiply
 /// @examples
+/// \dontrun{
 /// wasmer_math_example_ext(ptr, 2, 3)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_math_example_ext(mut ptr: ExternalPtr<WasmerRuntime>, a: i32, b: i32) -> List {
@@ -539,7 +547,9 @@ pub fn wasmer_instantiate_with_math_imports_ext(mut ptr: ExternalPtr<WasmerRunti
 /// @param args List of arguments with proper type conversion.
 /// @return List with success flag and result or error
 /// @examples
+/// \dontrun{
 /// wasmer_call_function_safe_ext(ptr, "inst1", "add", list(1, 2))
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_call_function_safe_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, function_name: String, args: List) -> List {
@@ -594,7 +604,9 @@ pub fn wasmer_call_function_safe_ext(mut ptr: ExternalPtr<WasmerRuntime>, instan
 /// @param ptr External pointer to WasmerRuntime.
 /// @return List with results
 /// @examples
+/// \dontrun{
 /// wasmer_host_function_example_ext(ptr)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_host_function_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> List {
@@ -679,7 +691,9 @@ pub fn wasmer_host_function_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> 
 /// @seealso [wasmer_runtime_new_with_compiler_ext()], [wasmer_runtime_release_ressources()]
 /// @return External pointer to WasmerRuntime
 /// @examples
+/// \dontrun{
 /// ptr <- wasmer_runtime_new()
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_runtime_new() -> ExternalPtr<WasmerRuntime> {
@@ -695,7 +709,9 @@ pub fn wasmer_runtime_new() -> ExternalPtr<WasmerRuntime> {
 /// @param compiler_name Name of the compiler ("cranelift", "singlepass").
 /// @return External pointer to WasmerRuntime
 /// @examples
+/// \dontrun{
 /// ptr <- wasmer_runtime_new_with_compiler_ext("cranelift")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_runtime_new_with_compiler_ext(compiler_name: String) -> ExternalPtr<WasmerRuntime> {
@@ -735,7 +751,9 @@ pub fn wasmer_runtime_new_with_compiler_ext(compiler_name: String) -> ExternalPt
 /// @param env_type Environment type: "wasi" (default) or "wasix".
 /// @return TRUE if successful, FALSE otherwise
 /// @examples
+/// \dontrun{
 /// wasmer_wasi_state_new_ext(ptr, "mod1", "wasi")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_wasi_state_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String, env_type: Option<String>) -> bool {
@@ -782,7 +800,9 @@ pub fn wasmer_wasi_state_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_nam
 /// @param module_name Name to register the module under.
 /// @return Status message
 /// @examples
+/// \dontrun{
 /// wasmer_compile_wat_ext(ptr, wat_code, "mod1")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_compile_wat_ext(mut ptr: ExternalPtr<WasmerRuntime>, wat_code: String, module_name: String) -> String {
@@ -801,7 +821,9 @@ pub fn wasmer_compile_wat_ext(mut ptr: ExternalPtr<WasmerRuntime>, wat_code: Str
 /// @param module_name Name to register the module under.
 /// @return Status message
 /// @examples
+/// \dontrun{
 /// wasmer_compile_wasm_ext(ptr, wasm_bytes, "mod1")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_compile_wasm_ext(mut ptr: ExternalPtr<WasmerRuntime>, wasm_bytes: Robj, module_name: String) -> String {
@@ -843,7 +865,9 @@ pub fn wasmer_instantiate_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: 
 /// @param args Arguments as R list.
 /// @return List with success flag and result or error
 /// @examples
+/// \dontrun{
 /// wasmer_call_function_ext(ptr, "inst1", "add", list(1, 2))
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_call_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, function_name: String, args: List) -> List {
@@ -861,7 +885,9 @@ pub fn wasmer_call_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_na
 /// @param instance_name Name of the instance.
 /// @return List with success flag and exports or error
 /// @examples
+/// \dontrun{
 /// wasmer_list_exports_ext(ptr, "inst1")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String) -> List {
@@ -899,7 +925,9 @@ pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name:
 /// @param wat_code WAT code as a string.
 /// @return WASM binary as R raw vector, or error string if conversion fails
 /// @examples
+/// \dontrun{
 /// wasmer_wat_to_wasm_ext(wat_code)
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_wat_to_wasm_ext(wat_code: String) -> Robj {
@@ -920,7 +948,9 @@ pub fn wasmer_wat_to_wasm_ext(wat_code: String) -> Robj {
 /// @param memory_name Name of the exported memory (default "memory").
 /// @return List with size_bytes and size_pages
 /// @examples
+/// \dontrun{
 /// wasmer_memory_size_ext(ptr, "inst1", "memory")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_memory_size_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, memory_name: String) -> List {
@@ -1230,7 +1260,9 @@ pub fn wasmer_table_get_ext(mut ptr: ExternalPtr<WasmerRuntime>, mut table_ptr: 
 /// @param _name Character string for registry name.
 /// @return External pointer to Function
 /// @examples
+/// \dontrun{
 /// wasmer_function_new_ext(ptr, function(x) x, c("i32"), c("i32"), "myfun")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_function_new_ext(
@@ -1328,7 +1360,9 @@ pub fn wasmer_function_new_ext(
 /// @param table_export_name Name of the exported table.
 /// @return External pointer to Table, or NULL if not found
 /// @examples
+/// \dontrun{
 /// wasmer_get_exported_table_ext(ptr, "inst1", "table1")
+/// }
 /// @export
 #[extendr]
 pub fn wasmer_get_exported_table_ext(
@@ -1359,7 +1393,9 @@ macro_rules! impl_r_host_function {
         /// @family host function registration
         /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
         /// @examples
+        /// \dontrun{
         /// wasmer_function_new_i32_to_i32(ptr, function(x) x)
+        /// }
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1388,7 +1424,9 @@ macro_rules! impl_r_host_function {
         /// @family host function registration
         /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
         /// @examples
+        /// \dontrun{
         /// wasmer_function_new_i32_i32_to_i32(ptr, function(x, y) x + y)
+        /// }
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1417,7 +1455,9 @@ macro_rules! impl_r_host_function {
         /// @family host function registration
         /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
         /// @examples
+        /// \dontrun{
         /// wasmer_function_new_f64_f64_to_f64(ptr, function(x, y) x * y)
+        /// }
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1446,7 +1486,9 @@ macro_rules! impl_r_host_function {
         /// @family host function registration
         /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_i32_to_void()], [wasmer_function_new_void_to_i32()]
         /// @examples
+        /// \dontrun{
         /// wasmer_function_new_f64_to_f64(ptr, function(x) sqrt(x))
+        /// }
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1475,7 +1517,9 @@ macro_rules! impl_r_host_function {
         /// @family host function registration
         /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_void_to_i32()]
         /// @examples
+        /// \dontrun{
         /// wasmer_function_new_i32_to_void(ptr, function(x) cat(x))
+        /// }
         /// @export
         #[extendr]
         pub fn $fn_name(
@@ -1503,7 +1547,9 @@ macro_rules! impl_r_host_function {
         /// @family host function registration
         /// @seealso [wasmer_register_r_function_ext()], [wasmer_function_new_ext()], [wasmer_function_new_i32_to_i32()], [wasmer_function_new_i32_i32_to_i32()], [wasmer_function_new_f64_f64_to_f64()], [wasmer_function_new_f64_to_f64()], [wasmer_function_new_i32_to_void()]
         /// @examples
+        /// \dontrun{
         /// wasmer_function_new_void_to_i32(ptr, function() 42)
+        /// }
         /// @export
         #[extendr]
         pub fn $fn_name(

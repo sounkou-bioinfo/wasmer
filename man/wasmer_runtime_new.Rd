@@ -16,7 +16,9 @@ Create a new Wasmer runtime for executing WebAssembly modules.
 Create a new Wasmer runtime
 }
 \examples{
+\dontrun{
 ptr <- wasmer_runtime_new()
+}
 }
 \seealso{
 \code{\link[=wasmer_runtime_new_with_compiler_ext]{wasmer_runtime_new_with_compiler_ext()}}, \code{\link[=wasmer_runtime_release_ressources]{wasmer_runtime_release_ressources()}}

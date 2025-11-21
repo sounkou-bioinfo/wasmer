@@ -13,7 +13,9 @@ Create a WASM host function that takes an i32 and returns an i32, using an R fun
 Create a WASM host function with signature i32 -> i32
 }
 \examples{
+\dontrun{
 wasmer_function_new_i32_to_i32(ptr, function(x) x)
+}
 }
 \seealso{
 \code{\link[=wasmer_register_r_function_ext]{wasmer_register_r_function_ext()}}, \code{\link[=wasmer_function_new_ext]{wasmer_function_new_ext()}}, \code{\link[=wasmer_function_new_i32_i32_to_i32]{wasmer_function_new_i32_i32_to_i32()}}, \code{\link[=wasmer_function_new_f64_f64_to_f64]{wasmer_function_new_f64_f64_to_f64()}}, \code{\link[=wasmer_function_new_f64_to_f64]{wasmer_function_new_f64_to_f64()}}, \code{\link[=wasmer_function_new_i32_to_void]{wasmer_function_new_i32_to_void()}}, \code{\link[=wasmer_function_new_void_to_i32]{wasmer_function_new_void_to_i32()}}

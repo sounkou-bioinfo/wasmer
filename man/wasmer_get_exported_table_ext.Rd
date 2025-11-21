@@ -23,7 +23,9 @@ Get a pointer to an exported table from a WASM instance by name.
 Get a pointer to an exported table from a WASM instance by name
 }
 \examples{
+\dontrun{
 wasmer_get_exported_table_ext(ptr, "inst1", "table1")
+}
 }
 \seealso{
 \code{\link[=wasmer_table_new_ext]{wasmer_table_new_ext()}}, \code{\link[=wasmer_table_set_ext]{wasmer_table_set_ext()}}, \code{\link[=wasmer_table_grow_ext]{wasmer_table_grow_ext()}}, \code{\link[=wasmer_table_get_ext]{wasmer_table_get_ext()}}

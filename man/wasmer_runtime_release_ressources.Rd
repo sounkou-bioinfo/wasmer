@@ -19,7 +19,9 @@ Explicitly shutdown the runtime, free resources, and clear the R external pointe
 Release resources held by the Wasmer runtime
 }
 \examples{
+\dontrun{
 wasmer_runtime_release_ressources(ptr)
+}
 }
 \seealso{
 \code{\link[=wasmer_runtime_new]{wasmer_runtime_new()}}, \code{\link[=wasmer_runtime_new_with_compiler_ext]{wasmer_runtime_new_with_compiler_ext()}}

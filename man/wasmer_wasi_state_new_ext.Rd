@@ -23,7 +23,9 @@ Create a WASI or WASIX state for the runtime.
 Create a WASI or WASIX state for the runtime
 }
 \examples{
+\dontrun{
 wasmer_wasi_state_new_ext(ptr, "mod1", "wasi")
+}
 }
 \seealso{
 \code{\link[=wasmer_instantiate_ext]{wasmer_instantiate_ext()}}, \code{\link[=wasmer_instantiate_with_math_imports_ext]{wasmer_instantiate_with_math_imports_ext()}}, \code{\link[=wasmer_instantiate_with_table_ext]{wasmer_instantiate_with_table_ext()}}

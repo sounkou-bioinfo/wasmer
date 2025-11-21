@@ -27,7 +27,9 @@ Create a Wasmer host function from an R function with dynamic signature.
 Create a Wasmer host function from an R function with dynamic signature
 }
 \examples{
+\dontrun{
 wasmer_function_new_ext(ptr, function(x) x, c("i32"), c("i32"), "myfun")
+}
 }
 \seealso{
 \code{\link[=wasmer_register_r_function_ext]{wasmer_register_r_function_ext()}}, \code{\link[=wasmer_function_new_i32_to_i32]{wasmer_function_new_i32_to_i32()}}, \code{\link[=wasmer_function_new_i32_i32_to_i32]{wasmer_function_new_i32_i32_to_i32()}}, \code{\link[=wasmer_function_new_f64_f64_to_f64]{wasmer_function_new_f64_f64_to_f64()}}, \code{\link[=wasmer_function_new_f64_to_f64]{wasmer_function_new_f64_to_f64()}}, \code{\link[=wasmer_function_new_i32_to_void]{wasmer_function_new_i32_to_void()}}, \code{\link[=wasmer_function_new_void_to_i32]{wasmer_function_new_void_to_i32()}}

@@ -23,7 +23,9 @@ Compile a WebAssembly binary and add it to the runtime.
 Compile a WASM binary and add it to the runtime
 }
 \examples{
+\dontrun{
 wasmer_compile_wasm_ext(ptr, wasm_bytes, "mod1")
+}
 }
 \seealso{
 \code{\link[=wasmer_compile_wat_ext]{wasmer_compile_wat_ext()}}, \code{\link[=wasmer_wat_to_wasm_ext]{wasmer_wat_to_wasm_ext()}}

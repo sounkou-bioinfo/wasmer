@@ -19,7 +19,9 @@ Create a new Wasmer runtime for executing WebAssembly modules using a specified 
 Create a new Wasmer runtime with a specific compiler
 }
 \examples{
+\dontrun{
 ptr <- wasmer_runtime_new_with_compiler_ext("cranelift")
+}
 }
 \seealso{
 \code{\link[=wasmer_runtime_new]{wasmer_runtime_new()}}, \code{\link[=wasmer_runtime_release_ressources]{wasmer_runtime_release_ressources()}}

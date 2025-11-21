@@ -25,7 +25,9 @@ Call an exported function from a WASM instance.
 Call an exported function from a WASM instance
 }
 \examples{
+\dontrun{
 wasmer_call_function_ext(ptr, "inst1", "add", list(1, 2))
+}
 }
 \seealso{
 \code{\link[=wasmer_call_function_safe_ext]{wasmer_call_function_safe_ext()}}, \code{\link[=wasmer_host_function_example_ext]{wasmer_host_function_example_ext()}}, \code{\link[=wasmer_math_example_ext]{wasmer_math_example_ext()}}, \code{\link[=wasmer_hello_world_example_ext]{wasmer_hello_world_example_ext()}}
