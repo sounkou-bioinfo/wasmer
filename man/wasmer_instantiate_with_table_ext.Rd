@@ -2,22 +2,36 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_instantiate_with_table_ext}
 \alias{wasmer_instantiate_with_table_ext}
-\title{Instantiate a compiled module in the runtime, with a custom table import.}
+\title{Instantiate WASM module with table import}
 \usage{
 wasmer_instantiate_with_table_ext(ptr, module_name, instance_name, table_ptr)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{module_name}{Name of the module to instantiate}
+\item{module_name}{Name of the module to instantiate.}
 
-\item{instance_name}{Name to register the instance under}
+\item{instance_name}{Name to register the instance under.}
 
-\item{table_ptr}{External pointer to Table to import as "env.host_table"}
+\item{table_ptr}{External pointer to Table to import as "env.host_table".}
 }
 \value{
 Status message
 }
 \description{
-Instantiate a compiled module in the runtime, with a custom table import.
+Instantiate a compiled WASM module in the runtime, with a custom table import.
 }
+\details{
+Instantiate a compiled module in the runtime, with a custom table import
+}
+\examples{
+wasmer_instantiate_with_table_ext(ptr, "mod1", "inst1", table_ptr)
+}
+\seealso{
+\code{\link[=wasmer_instantiate_ext]{wasmer_instantiate_ext()}}, \code{\link[=wasmer_instantiate_with_math_imports_ext]{wasmer_instantiate_with_math_imports_ext()}}, \code{\link[=wasmer_wasi_state_new_ext]{wasmer_wasi_state_new_ext()}}
+
+Other module instantiation: 
+\code{\link{wasmer_instantiate_with_math_imports_ext}()},
+\code{\link{wasmer_wasi_state_new_ext}()}
+}
+\concept{module instantiation}

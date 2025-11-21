@@ -2,16 +2,30 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_wat_to_wasm_ext}
 \alias{wasmer_wat_to_wasm_ext}
-\title{Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector}
+\title{Convert WAT to WASM}
 \usage{
 wasmer_wat_to_wasm_ext(wat_code)
 }
 \arguments{
-\item{wat_code}{WAT code as a string}
+\item{wat_code}{WAT code as a string.}
 }
 \value{
 WASM binary as R raw vector, or error string if conversion fails
 }
 \description{
+Convert WebAssembly Text (WAT) to WASM binary and return as R raw vector.
+}
+\details{
 Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector
 }
+\examples{
+wasmer_wat_to_wasm_ext(wat_code)
+}
+\seealso{
+\code{\link[=wasmer_compile_wat_ext]{wasmer_compile_wat_ext()}}, \code{\link[=wasmer_compile_wasm_ext]{wasmer_compile_wasm_ext()}}
+
+Other module compilation: 
+\code{\link{wasmer_compile_wasm_ext}()},
+\code{\link{wasmer_compile_wat_ext}()}
+}
+\concept{module compilation}

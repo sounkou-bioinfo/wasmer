@@ -2,20 +2,34 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_instantiate_with_math_imports_ext}
 \alias{wasmer_instantiate_with_math_imports_ext}
-\title{Create an instance with host functions for mathematical operations}
+\title{Instantiate WASM module with math imports}
 \usage{
 wasmer_instantiate_with_math_imports_ext(ptr, module_name, instance_name)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{module_name}{String name of the module to instantiate}
+\item{module_name}{String name of the module to instantiate.}
 
-\item{instance_name}{String name to identify this instance}
+\item{instance_name}{String name to identify this instance.}
 }
 \value{
 Status message
 }
 \description{
+Instantiate a WASM module with host functions for mathematical operations.
+}
+\details{
 Create an instance with host functions for mathematical operations
 }
+\examples{
+wasmer_instantiate_with_math_imports_ext(ptr, "mod1", "inst1")
+}
+\seealso{
+\code{\link[=wasmer_instantiate_ext]{wasmer_instantiate_ext()}}, \code{\link[=wasmer_instantiate_with_table_ext]{wasmer_instantiate_with_table_ext()}}, \code{\link[=wasmer_wasi_state_new_ext]{wasmer_wasi_state_new_ext()}}
+
+Other module instantiation: 
+\code{\link{wasmer_instantiate_with_table_ext}()},
+\code{\link{wasmer_wasi_state_new_ext}()}
+}
+\concept{module instantiation}

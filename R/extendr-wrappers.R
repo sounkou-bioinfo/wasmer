@@ -10,24 +10,45 @@
 #' @useDynLib wasmer, .registration = TRUE
 NULL
 
-#' Create a new Wasmer runtime for R. Returns an external pointer to the runtime object.
+#' Create a new Wasmer runtime
+#'
+#' @title Create a new Wasmer runtime
+#' @description Create a new Wasmer runtime for executing WebAssembly modules.
+#' @family runtime management
+#' @seealso [wasmer_runtime_new_with_compiler_ext()], [wasmer_runtime_release_ressources()]
 #' @return External pointer to WasmerRuntime
+#' @examples
+#' ptr <- wasmer_runtime_new()
 #' @export
 wasmer_runtime_new <- function() .Call(wrap__wasmer_runtime_new)
 
-#' Compile a WAT (WebAssembly Text) module and add it to the runtime.
-#' @param ptr External pointer to WasmerRuntime
-#' @param wat_code WAT code as a string
-#' @param module_name Name to register the module under
+#' Compile a WAT (WebAssembly Text) module and add it to the runtime
+#'
+#' @title Compile WAT module
+#' @description Compile a WebAssembly Text (WAT) module and add it to the runtime.
+#' @family module compilation
+#' @seealso [wasmer_compile_wasm_ext()], [wasmer_wat_to_wasm_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param wat_code WAT code as a string.
+#' @param module_name Name to register the module under.
 #' @return Status message
+#' @examples
+#' wasmer_compile_wat_ext(ptr, wat_code, "mod1")
 #' @export
 wasmer_compile_wat_ext <- function(ptr, wat_code, module_name) .Call(wrap__wasmer_compile_wat_ext, ptr, wat_code, module_name)
 
-#' Compile a WASM binary and add it to the runtime.
-#' @param ptr External pointer to WasmerRuntime
-#' @param wasm_bytes WASM binary as R raw vector
-#' @param module_name Name to register the module under
+#' Compile a WASM binary and add it to the runtime
+#'
+#' @title Compile WASM binary
+#' @description Compile a WebAssembly binary and add it to the runtime.
+#' @family module compilation
+#' @seealso [wasmer_compile_wat_ext()], [wasmer_wat_to_wasm_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param wasm_bytes WASM binary as R raw vector.
+#' @param module_name Name to register the module under.
 #' @return Status message
+#' @examples
+#' wasmer_compile_wasm_ext(ptr, wasm_bytes, "mod1")
 #' @export
 wasmer_compile_wasm_ext <- function(ptr, wasm_bytes, module_name) .Call(wrap__wasmer_compile_wasm_ext, ptr, wasm_bytes, module_name)
 
@@ -39,12 +60,19 @@ wasmer_compile_wasm_ext <- function(ptr, wasm_bytes, module_name) .Call(wrap__wa
 #' @export
 wasmer_instantiate_ext <- function(ptr, module_name, instance_name) .Call(wrap__wasmer_instantiate_ext, ptr, module_name, instance_name)
 
-#' Call an exported function from a WASM instance.
-#' @param ptr External pointer to WasmerRuntime
-#' @param instance_name Name of the instance
-#' @param function_name Name of the function to call
-#' @param args Arguments as R list
+#' Call an exported function from a WASM instance
+#'
+#' @title Call WASM function
+#' @description Call an exported function from a WASM instance.
+#' @family function calling
+#' @seealso [wasmer_call_function_safe_ext()], [wasmer_host_function_example_ext()], [wasmer_math_example_ext()], [wasmer_hello_world_example_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param instance_name Name of the instance.
+#' @param function_name Name of the function to call.
+#' @param args Arguments as R list.
 #' @return List with success flag and result or error
+#' @examples
+#' wasmer_call_function_ext(ptr, "inst1", "add", list(1, 2))
 #' @export
 wasmer_call_function_ext <- function(ptr, instance_name, function_name, args) .Call(wrap__wasmer_call_function_ext, ptr, instance_name, function_name, args)
 
@@ -64,45 +92,87 @@ wasmer_list_exports_ext <- function(ptr, instance_name) .Call(wrap__wasmer_list_
 wasmer_register_r_function_ext <- function(ptr, name, fun) .Call(wrap__wasmer_register_r_function_ext, ptr, name, fun)
 
 #' Math operations example
-#' @param ptr External pointer to WasmerRuntime
-#' @param a First integer
-#' @param b Second integer
+#'
+#' @title Math operations example
+#' @description Example WASM module for math operations.
+#' @family function calling
+#' @seealso [wasmer_call_function_ext()], [wasmer_call_function_safe_ext()], [wasmer_host_function_example_ext()], [wasmer_hello_world_example_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param a First integer.
+#' @param b Second integer.
 #' @return List with results of add and multiply
+#' @examples
+#' wasmer_math_example_ext(ptr, 2, 3)
 #' @export
 wasmer_math_example_ext <- function(ptr, a, b) .Call(wrap__wasmer_math_example_ext, ptr, a, b)
 
 #' Create a simple "Hello World" example
-#' @param ptr External pointer to WasmerRuntime
+#'
+#' @title Hello World example
+#' @description Create a simple WASM "Hello World" example.
+#' @family function calling
+#' @seealso [wasmer_call_function_ext()], [wasmer_call_function_safe_ext()], [wasmer_host_function_example_ext()], [wasmer_math_example_ext()]
+#' @param ptr External pointer to WasmerRuntime.
 #' @return String result from WASM hello function
+#' @examples
+#' wasmer_hello_world_example_ext(ptr)
 #' @export
 wasmer_hello_world_example_ext <- function(ptr) .Call(wrap__wasmer_hello_world_example_ext, ptr)
 
 #' Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector
-#' @param wat_code WAT code as a string
+#'
+#' @title Convert WAT to WASM
+#' @description Convert WebAssembly Text (WAT) to WASM binary and return as R raw vector.
+#' @family module compilation
+#' @seealso [wasmer_compile_wat_ext()], [wasmer_compile_wasm_ext()]
+#' @param wat_code WAT code as a string.
 #' @return WASM binary as R raw vector, or error string if conversion fails
+#' @examples
+#' wasmer_wat_to_wasm_ext(wat_code)
 #' @export
 wasmer_wat_to_wasm_ext <- function(wat_code) .Call(wrap__wasmer_wat_to_wasm_ext, wat_code)
 
 #' Create an instance with host functions for mathematical operations
-#' @param ptr External pointer to WasmerRuntime
-#' @param module_name String name of the module to instantiate
-#' @param instance_name String name to identify this instance
+#'
+#' @title Instantiate WASM module with math imports
+#' @description Instantiate a WASM module with host functions for mathematical operations.
+#' @family module instantiation
+#' @seealso [wasmer_instantiate_ext()], [wasmer_instantiate_with_table_ext()], [wasmer_wasi_state_new_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param module_name String name of the module to instantiate.
+#' @param instance_name String name to identify this instance.
 #' @return Status message
+#' @examples
+#' wasmer_instantiate_with_math_imports_ext(ptr, "mod1", "inst1")
 #' @export
 wasmer_instantiate_with_math_imports_ext <- function(ptr, module_name, instance_name) .Call(wrap__wasmer_instantiate_with_math_imports_ext, ptr, module_name, instance_name)
 
 #' Advanced function calling with type safety
-#' @param ptr External pointer to WasmerRuntime
-#' @param instance_name String name of the instance
-#' @param function_name String name of the function to call
-#' @param args List of arguments with proper type conversion
+#'
+#' @title Call WASM function (type safe)
+#' @description Call an exported WASM function with type safety and conversion.
+#' @family function calling
+#' @seealso [wasmer_call_function_ext()], [wasmer_host_function_example_ext()], [wasmer_math_example_ext()], [wasmer_hello_world_example_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param instance_name String name of the instance.
+#' @param function_name String name of the function to call.
+#' @param args List of arguments with proper type conversion.
 #' @return List with success flag and result or error
+#' @examples
+#' wasmer_call_function_safe_ext(ptr, "inst1", "add", list(1, 2))
 #' @export
 wasmer_call_function_safe_ext <- function(ptr, instance_name, function_name, args) .Call(wrap__wasmer_call_function_safe_ext, ptr, instance_name, function_name, args)
 
 #' Example with host function imports
-#' @param ptr External pointer to WasmerRuntime
+#'
+#' @title Host function example
+#' @description Example with host function imports.
+#' @family function calling
+#' @seealso [wasmer_call_function_ext()], [wasmer_call_function_safe_ext()], [wasmer_math_example_ext()], [wasmer_hello_world_example_ext()]
+#' @param ptr External pointer to WasmerRuntime.
 #' @return List with results
+#' @examples
+#' wasmer_host_function_example_ext(ptr)
 #' @export
 wasmer_host_function_example_ext <- function(ptr) .Call(wrap__wasmer_host_function_example_ext, ptr)
 
@@ -204,15 +274,6 @@ wasmer_table_get_ext <- function(ptr, table_ptr, index) .Call(wrap__wasmer_table
 #' @export
 wasmer_function_new_ext <- function(ptr, rfun, arg_types, ret_types, `_name`) .Call(wrap__wasmer_function_new_ext, ptr, rfun, arg_types, ret_types, `_name`)
 
-#' Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
-#' This is required for WASM tables and funcref use.
-#' @param ptr External pointer to WasmerRuntime
-#' @param rfun R function object
-#' @param _name Character string for registry name
-#' @return External pointer to Function
-#' @export
-wasmer_function_new_static_ext <- function(ptr, rfun, `_name`) .Call(wrap__wasmer_function_new_static_ext, ptr, rfun, `_name`)
-
 #' Get a pointer to an exported table from a WASM instance by name.
 #' @param ptr External pointer to WasmerRuntime
 #' @param instance_name Name of the instance
@@ -263,31 +324,60 @@ wasmer_function_new_i32_to_void <- function(ptr, rfun) .Call(wrap__wasmer_functi
 #' @export
 wasmer_function_new_void_to_i32 <- function(ptr, rfun) .Call(wrap__wasmer_function_new_void_to_i32, ptr, rfun)
 
-#' Create a new Wasmer runtime with a specific compiler.
-#' @param compiler_name Name of the compiler ("cranelift", "singlepass")
+#' Create a new Wasmer runtime with a specific compiler
+#'
+#' @title Create a new Wasmer runtime with a specific compiler
+#' @description Create a new Wasmer runtime for executing WebAssembly modules using a specified compiler backend.
+#' @family runtime management
+#' @seealso [wasmer_runtime_new()], [wasmer_runtime_release_ressources()]
+#' @param compiler_name Name of the compiler ("cranelift", "singlepass").
 #' @return External pointer to WasmerRuntime
+#' @examples
+#' ptr <- wasmer_runtime_new_with_compiler_ext("cranelift")
 #' @export
 wasmer_runtime_new_with_compiler_ext <- function(compiler_name) .Call(wrap__wasmer_runtime_new_with_compiler_ext, compiler_name)
 
-#' Instantiate a compiled module in the runtime, with a custom table import.
-#' @param ptr External pointer to WasmerRuntime
-#' @param module_name Name of the module to instantiate
-#' @param instance_name Name to register the instance under
-#' @param table_ptr External pointer to Table to import as "env.host_table"
+#' Instantiate a compiled module in the runtime, with a custom table import
+#'
+#' @title Instantiate WASM module with table import
+#' @description Instantiate a compiled WASM module in the runtime, with a custom table import.
+#' @family module instantiation
+#' @seealso [wasmer_instantiate_ext()], [wasmer_instantiate_with_math_imports_ext()], [wasmer_wasi_state_new_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param module_name Name of the module to instantiate.
+#' @param instance_name Name to register the instance under.
+#' @param table_ptr External pointer to Table to import as "env.host_table".
 #' @return Status message
+#' @examples
+#' wasmer_instantiate_with_table_ext(ptr, "mod1", "inst1", table_ptr)
 #' @export
 wasmer_instantiate_with_table_ext <- function(ptr, module_name, instance_name, table_ptr) .Call(wrap__wasmer_instantiate_with_table_ext, ptr, module_name, instance_name, table_ptr)
 
-#' Create a WASI or WASIX state for the runtime.
-#' @param ptr External pointer to WasmerRuntime
-#' @param module_name Name of the module (for WASI/WASIX args)
-#' @param env_type Environment type: "wasi" (default) or "wasix"
+#' Create a WASI or WASIX state for the runtime
+#'
+#' @title Create WASI/WASIX state
+#' @description Create a WASI or WASIX state for the runtime.
+#' @family module instantiation
+#' @seealso [wasmer_instantiate_ext()], [wasmer_instantiate_with_math_imports_ext()], [wasmer_instantiate_with_table_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @param module_name Name of the module (for WASI/WASIX args).
+#' @param env_type Environment type: "wasi" (default) or "wasix".
 #' @return TRUE if successful, FALSE otherwise
+#' @examples
+#' wasmer_wasi_state_new_ext(ptr, "mod1", "wasi")
 #' @export
 wasmer_wasi_state_new_ext <- function(ptr, module_name, env_type) .Call(wrap__wasmer_wasi_state_new_ext, ptr, module_name, env_type)
 
-#' Explicitly shutdown the runtime, free resources, and clear the R external pointer
-#' @param ptr External pointer to WasmerRuntime
+#' Release resources held by the Wasmer runtime
+#'
+#' @title Release Wasmer runtime resources
+#' @description Explicitly shutdown the runtime, free resources, and clear the R external pointer.
+#' @family runtime management
+#' @seealso [wasmer_runtime_new()], [wasmer_runtime_new_with_compiler_ext()]
+#' @param ptr External pointer to WasmerRuntime.
+#' @return NULL (invisible)
+#' @examples
+#' wasmer_runtime_release_ressources(ptr)
 #' @export
 wasmer_runtime_release_ressources <- function(ptr) invisible(.Call(wrap__wasmer_runtime_release_ressources, ptr))
 

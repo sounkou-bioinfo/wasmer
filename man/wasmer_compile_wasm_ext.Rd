@@ -2,20 +2,34 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_compile_wasm_ext}
 \alias{wasmer_compile_wasm_ext}
-\title{Compile a WASM binary and add it to the runtime.}
+\title{Compile WASM binary}
 \usage{
 wasmer_compile_wasm_ext(ptr, wasm_bytes, module_name)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{wasm_bytes}{WASM binary as R raw vector}
+\item{wasm_bytes}{WASM binary as R raw vector.}
 
-\item{module_name}{Name to register the module under}
+\item{module_name}{Name to register the module under.}
 }
 \value{
 Status message
 }
 \description{
-Compile a WASM binary and add it to the runtime.
+Compile a WebAssembly binary and add it to the runtime.
 }
+\details{
+Compile a WASM binary and add it to the runtime
+}
+\examples{
+wasmer_compile_wasm_ext(ptr, wasm_bytes, "mod1")
+}
+\seealso{
+\code{\link[=wasmer_compile_wat_ext]{wasmer_compile_wat_ext()}}, \code{\link[=wasmer_wat_to_wasm_ext]{wasmer_wat_to_wasm_ext()}}
+
+Other module compilation: 
+\code{\link{wasmer_compile_wat_ext}()},
+\code{\link{wasmer_wat_to_wasm_ext}()}
+}
+\concept{module compilation}

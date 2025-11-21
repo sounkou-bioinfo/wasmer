@@ -2,16 +2,32 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_host_function_example_ext}
 \alias{wasmer_host_function_example_ext}
-\title{Example with host function imports}
+\title{Host function example}
 \usage{
 wasmer_host_function_example_ext(ptr)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 }
 \value{
 List with results
 }
 \description{
+Example with host function imports.
+}
+\details{
 Example with host function imports
 }
+\examples{
+wasmer_host_function_example_ext(ptr)
+}
+\seealso{
+\code{\link[=wasmer_call_function_ext]{wasmer_call_function_ext()}}, \code{\link[=wasmer_call_function_safe_ext]{wasmer_call_function_safe_ext()}}, \code{\link[=wasmer_math_example_ext]{wasmer_math_example_ext()}}, \code{\link[=wasmer_hello_world_example_ext]{wasmer_hello_world_example_ext()}}
+
+Other function calling: 
+\code{\link{wasmer_call_function_ext}()},
+\code{\link{wasmer_call_function_safe_ext}()},
+\code{\link{wasmer_hello_world_example_ext}()},
+\code{\link{wasmer_math_example_ext}()}
+}
+\concept{function calling}

@@ -2,22 +2,38 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_call_function_safe_ext}
 \alias{wasmer_call_function_safe_ext}
-\title{Advanced function calling with type safety}
+\title{Call WASM function (type safe)}
 \usage{
 wasmer_call_function_safe_ext(ptr, instance_name, function_name, args)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{String name of the instance}
+\item{instance_name}{String name of the instance.}
 
-\item{function_name}{String name of the function to call}
+\item{function_name}{String name of the function to call.}
 
-\item{args}{List of arguments with proper type conversion}
+\item{args}{List of arguments with proper type conversion.}
 }
 \value{
 List with success flag and result or error
 }
 \description{
+Call an exported WASM function with type safety and conversion.
+}
+\details{
 Advanced function calling with type safety
 }
+\examples{
+wasmer_call_function_safe_ext(ptr, "inst1", "add", list(1, 2))
+}
+\seealso{
+\code{\link[=wasmer_call_function_ext]{wasmer_call_function_ext()}}, \code{\link[=wasmer_host_function_example_ext]{wasmer_host_function_example_ext()}}, \code{\link[=wasmer_math_example_ext]{wasmer_math_example_ext()}}, \code{\link[=wasmer_hello_world_example_ext]{wasmer_hello_world_example_ext()}}
+
+Other function calling: 
+\code{\link{wasmer_call_function_ext}()},
+\code{\link{wasmer_hello_world_example_ext}()},
+\code{\link{wasmer_host_function_example_ext}()},
+\code{\link{wasmer_math_example_ext}()}
+}
+\concept{function calling}

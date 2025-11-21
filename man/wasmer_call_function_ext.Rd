@@ -2,18 +2,18 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_call_function_ext}
 \alias{wasmer_call_function_ext}
-\title{Call an exported function from a WASM instance.}
+\title{Call WASM function}
 \usage{
 wasmer_call_function_ext(ptr, instance_name, function_name, args)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{instance_name}{Name of the instance}
+\item{instance_name}{Name of the instance.}
 
-\item{function_name}{Name of the function to call}
+\item{function_name}{Name of the function to call.}
 
-\item{args}{Arguments as R list}
+\item{args}{Arguments as R list.}
 }
 \value{
 List with success flag and result or error
@@ -21,3 +21,19 @@ List with success flag and result or error
 \description{
 Call an exported function from a WASM instance.
 }
+\details{
+Call an exported function from a WASM instance
+}
+\examples{
+wasmer_call_function_ext(ptr, "inst1", "add", list(1, 2))
+}
+\seealso{
+\code{\link[=wasmer_call_function_safe_ext]{wasmer_call_function_safe_ext()}}, \code{\link[=wasmer_host_function_example_ext]{wasmer_host_function_example_ext()}}, \code{\link[=wasmer_math_example_ext]{wasmer_math_example_ext()}}, \code{\link[=wasmer_hello_world_example_ext]{wasmer_hello_world_example_ext()}}
+
+Other function calling: 
+\code{\link{wasmer_call_function_safe_ext}()},
+\code{\link{wasmer_hello_world_example_ext}()},
+\code{\link{wasmer_host_function_example_ext}()},
+\code{\link{wasmer_math_example_ext}()}
+}
+\concept{function calling}

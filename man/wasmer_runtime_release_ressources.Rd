@@ -2,13 +2,30 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_runtime_release_ressources}
 \alias{wasmer_runtime_release_ressources}
-\title{Explicitly shutdown the runtime, free resources, and clear the R external pointer}
+\title{Release Wasmer runtime resources}
 \usage{
 wasmer_runtime_release_ressources(ptr)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
+}
+\value{
+NULL (invisible)
 }
 \description{
-Explicitly shutdown the runtime, free resources, and clear the R external pointer
+Explicitly shutdown the runtime, free resources, and clear the R external pointer.
 }
+\details{
+Release resources held by the Wasmer runtime
+}
+\examples{
+wasmer_runtime_release_ressources(ptr)
+}
+\seealso{
+\code{\link[=wasmer_runtime_new]{wasmer_runtime_new()}}, \code{\link[=wasmer_runtime_new_with_compiler_ext]{wasmer_runtime_new_with_compiler_ext()}}
+
+Other runtime management: 
+\code{\link{wasmer_runtime_new}()},
+\code{\link{wasmer_runtime_new_with_compiler_ext}()}
+}
+\concept{runtime management}

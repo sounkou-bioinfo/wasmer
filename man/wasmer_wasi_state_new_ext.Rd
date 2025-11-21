@@ -2,16 +2,16 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_wasi_state_new_ext}
 \alias{wasmer_wasi_state_new_ext}
-\title{Create a WASI or WASIX state for the runtime.}
+\title{Create WASI/WASIX state}
 \usage{
 wasmer_wasi_state_new_ext(ptr, module_name, env_type)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{module_name}{Name of the module (for WASI/WASIX args)}
+\item{module_name}{Name of the module (for WASI/WASIX args).}
 
-\item{env_type}{Environment type: "wasi" (default) or "wasix"}
+\item{env_type}{Environment type: "wasi" (default) or "wasix".}
 }
 \value{
 TRUE if successful, FALSE otherwise
@@ -19,3 +19,17 @@ TRUE if successful, FALSE otherwise
 \description{
 Create a WASI or WASIX state for the runtime.
 }
+\details{
+Create a WASI or WASIX state for the runtime
+}
+\examples{
+wasmer_wasi_state_new_ext(ptr, "mod1", "wasi")
+}
+\seealso{
+\code{\link[=wasmer_instantiate_ext]{wasmer_instantiate_ext()}}, \code{\link[=wasmer_instantiate_with_math_imports_ext]{wasmer_instantiate_with_math_imports_ext()}}, \code{\link[=wasmer_instantiate_with_table_ext]{wasmer_instantiate_with_table_ext()}}
+
+Other module instantiation: 
+\code{\link{wasmer_instantiate_with_math_imports_ext}()},
+\code{\link{wasmer_instantiate_with_table_ext}()}
+}
+\concept{module instantiation}

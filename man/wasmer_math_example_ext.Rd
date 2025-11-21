@@ -7,15 +7,31 @@
 wasmer_math_example_ext(ptr, a, b)
 }
 \arguments{
-\item{ptr}{External pointer to WasmerRuntime}
+\item{ptr}{External pointer to WasmerRuntime.}
 
-\item{a}{First integer}
+\item{a}{First integer.}
 
-\item{b}{Second integer}
+\item{b}{Second integer.}
 }
 \value{
 List with results of add and multiply
 }
 \description{
+Example WASM module for math operations.
+}
+\details{
 Math operations example
 }
+\examples{
+wasmer_math_example_ext(ptr, 2, 3)
+}
+\seealso{
+\code{\link[=wasmer_call_function_ext]{wasmer_call_function_ext()}}, \code{\link[=wasmer_call_function_safe_ext]{wasmer_call_function_safe_ext()}}, \code{\link[=wasmer_host_function_example_ext]{wasmer_host_function_example_ext()}}, \code{\link[=wasmer_hello_world_example_ext]{wasmer_hello_world_example_ext()}}
+
+Other function calling: 
+\code{\link{wasmer_call_function_ext}()},
+\code{\link{wasmer_call_function_safe_ext}()},
+\code{\link{wasmer_hello_world_example_ext}()},
+\code{\link{wasmer_host_function_example_ext}()}
+}
+\concept{function calling}

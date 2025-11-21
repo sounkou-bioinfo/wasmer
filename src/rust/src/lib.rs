@@ -9,6 +9,18 @@ use wasmer::{AsStoreRef, AsStoreMut};
 use wasmer::sys::EngineBuilder;
 use std::sync::atomic::{AtomicU32, Ordering};
 use wasmer_wasix::WasiFunctionEnv;
+use memory::WasmerMemoryManager;
+use host_functions::WasmerHostFunctions;
+use type_converter::TypeConverter;
+use wasi_utils::WasiUtils;
+use compiler_utils::CompilerUtils;
+mod memory;
+mod host_functions;
+mod type_converter;
+mod wasi_utils;
+mod compiler_utils;
+
+
 thread_local! {
     static R_FUNCTION_REGISTRY: Lazy<RefCell<HashMap<u32, Robj>>> =
         Lazy::new(|| RefCell::new(HashMap::new()));
@@ -28,14 +40,11 @@ fn register_r_function_internal(fun: Robj) -> u32 {
     id
 }
 
-fn read_string_from_memory(instance: &Instance, store: &wasmer::StoreRef, ptr: i32, len: i32) -> Option<String> {
-    let memory = instance.exports.get_memory("memory").ok()?;
-    let view = memory.view(store);
-    let bytes: Vec<u8> = (ptr..ptr+len)
-        .map(|i| unsafe { *view.data_ptr().add(i as usize) })
-        .collect();
-    String::from_utf8(bytes).ok()
+pub fn register_r_function(_name: &str, fun: Robj) -> u32 {
+    let id = register_r_function_internal(fun);
+    id
 }
+
 
 fn read_i32_args_from_memory(instance: &Instance, store: &wasmer::StoreRef, ptr: i32, argc: i32) -> Vec<i32> {
     let memory = instance.exports.get_memory("memory").unwrap();
@@ -59,13 +68,6 @@ pub struct WasmerEnv {
     pub instance: Option<Instance>,
 }
 
-// Deprecated: register_r_function with name is no longer used internally in the same way
-// Keeping it for compatibility if needed, but we will likely remove it or change it.
-// For now, we just ignore the name and register it.
-pub fn register_r_function(_name: &str, fun: Robj) -> u32 {
-    let id = register_r_function_internal(fun);
-    id
-}
 
 
 pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut Store) -> Function {
@@ -112,25 +114,13 @@ pub fn create_generic_r_host_function(env: &FunctionEnv<WasmerEnv>, store: &mut 
 
 
 
-mod memory;
-mod host_functions;
-mod type_converter;
-mod wasi_utils;
-mod compiler_utils;
-
-use memory::WasmerMemoryManager;
-use host_functions::WasmerHostFunctions;
-use type_converter::TypeConverter;
-use wasi_utils::WasiUtils;
-use compiler_utils::CompilerUtils;
-
 /// Helper function to convert Wasm values to R values
 fn convert_wasm_values_to_r(values: Box<[Value]>) -> Robj {
     let mut r_values = Vec::new();
     for value in values.iter() {
         match value {
             Value::I32(i) => r_values.push(r!(*i)),
-            Value::I64(i) => r_values.push(r!(*i as i32)),
+            Value::I64(i) => r_values.push(r!(*i as f64)),
             Value::F32(f) => r_values.push(r!(*f as f64)),
             Value::F64(f) => r_values.push(r!(*f)),
             _ => r_values.push(r!(0)),
@@ -208,8 +198,16 @@ impl WasmerRuntime {
 }
 
 // Release the resources held by the runtime before the gc collects the external pointer
-/// Explicitly shutdown the runtime, free resources, and clear the R external pointer
-/// @param ptr External pointer to WasmerRuntime
+/// Release resources held by the Wasmer runtime
+///
+/// @title Release Wasmer runtime resources
+/// @description Explicitly shutdown the runtime, free resources, and clear the R external pointer.
+/// @family runtime management
+/// @seealso [wasmer_runtime_new()], [wasmer_runtime_new_with_compiler_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @return NULL (invisible)
+/// @examples
+/// wasmer_runtime_release_ressources(ptr)
 /// @export
 #[extendr]
 pub fn wasmer_runtime_release_ressources(mut ptr: ExternalPtr<WasmerRuntime>) {
@@ -341,9 +339,16 @@ fn wasmer_list_exports(runtime: &mut WasmerRuntime, instance_name: String) -> Li
 }
 
 /// List exported function signatures (name, input types, output types) for a WASM instance
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
+///
+/// @title List WASM function signatures
+/// @description List exported function signatures (name, input types, output types) for a WASM instance.
+/// @family exports and signatures
+/// @seealso [wasmer_list_exports_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
 /// @return Data frame with columns: name, params, results
+/// @examples
+/// wasmer_list_function_signatures_ext(ptr, "inst1")
 /// @export
 #[extendr]
 pub fn wasmer_list_function_signatures_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String) -> List {
@@ -373,8 +378,15 @@ pub fn wasmer_list_function_signatures_ext(mut ptr: ExternalPtr<WasmerRuntime>, 
 }
 
 /// Create a simple "Hello World" example
-/// @param ptr External pointer to WasmerRuntime
+///
+/// @title Hello World example
+/// @description Create a simple WASM "Hello World" example.
+/// @family function calling
+/// @seealso [wasmer_call_function_ext()], [wasmer_call_function_safe_ext()], [wasmer_host_function_example_ext()], [wasmer_math_example_ext()]
+/// @param ptr External pointer to WasmerRuntime.
 /// @return String result from WASM hello function
+/// @examples
+/// wasmer_hello_world_example_ext(ptr)
 /// @export
 #[extendr]
 pub fn wasmer_hello_world_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> String {
@@ -411,10 +423,17 @@ pub fn wasmer_hello_world_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> St
 }
 
 /// Math operations example
-/// @param ptr External pointer to WasmerRuntime
-/// @param a First integer
-/// @param b Second integer
+///
+/// @title Math operations example
+/// @description Example WASM module for math operations.
+/// @family function calling
+/// @seealso [wasmer_call_function_ext()], [wasmer_call_function_safe_ext()], [wasmer_host_function_example_ext()], [wasmer_hello_world_example_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param a First integer.
+/// @param b Second integer.
 /// @return List with results of add and multiply
+/// @examples
+/// wasmer_math_example_ext(ptr, 2, 3)
 /// @export
 #[extendr]
 pub fn wasmer_math_example_ext(mut ptr: ExternalPtr<WasmerRuntime>, a: i32, b: i32) -> List {
@@ -469,10 +488,17 @@ pub fn wasmer_math_example_ext(mut ptr: ExternalPtr<WasmerRuntime>, a: i32, b: i
 }
 
 /// Create an instance with host functions for mathematical operations
-/// @param ptr External pointer to WasmerRuntime
-/// @param module_name String name of the module to instantiate
-/// @param instance_name String name to identify this instance
+///
+/// @title Instantiate WASM module with math imports
+/// @description Instantiate a WASM module with host functions for mathematical operations.
+/// @family module instantiation
+/// @seealso [wasmer_instantiate_ext()], [wasmer_instantiate_with_table_ext()], [wasmer_wasi_state_new_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param module_name String name of the module to instantiate.
+/// @param instance_name String name to identify this instance.
 /// @return Status message
+/// @examples
+/// wasmer_instantiate_with_math_imports_ext(ptr, "mod1", "inst1")
 /// @export
 #[extendr]
 pub fn wasmer_instantiate_with_math_imports_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String, instance_name: String) -> String {
@@ -502,11 +528,18 @@ pub fn wasmer_instantiate_with_math_imports_ext(mut ptr: ExternalPtr<WasmerRunti
 }
 
 /// Advanced function calling with type safety
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name String name of the instance
-/// @param function_name String name of the function to call
-/// @param args List of arguments with proper type conversion
+///
+/// @title Call WASM function (type safe)
+/// @description Call an exported WASM function with type safety and conversion.
+/// @family function calling
+/// @seealso [wasmer_call_function_ext()], [wasmer_host_function_example_ext()], [wasmer_math_example_ext()], [wasmer_hello_world_example_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name String name of the instance.
+/// @param function_name String name of the function to call.
+/// @param args List of arguments with proper type conversion.
 /// @return List with success flag and result or error
+/// @examples
+/// wasmer_call_function_safe_ext(ptr, "inst1", "add", list(1, 2))
 /// @export
 #[extendr]
 pub fn wasmer_call_function_safe_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, function_name: String, args: List) -> List {
@@ -553,8 +586,15 @@ pub fn wasmer_call_function_safe_ext(mut ptr: ExternalPtr<WasmerRuntime>, instan
 }
 
 /// Example with host function imports
-/// @param ptr External pointer to WasmerRuntime
+///
+/// @title Host function example
+/// @description Example with host function imports.
+/// @family function calling
+/// @seealso [wasmer_call_function_ext()], [wasmer_call_function_safe_ext()], [wasmer_math_example_ext()], [wasmer_hello_world_example_ext()]
+/// @param ptr External pointer to WasmerRuntime.
 /// @return List with results
+/// @examples
+/// wasmer_host_function_example_ext(ptr)
 /// @export
 #[extendr]
 pub fn wasmer_host_function_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> List {
@@ -631,17 +671,31 @@ pub fn wasmer_host_function_example_ext(mut ptr: ExternalPtr<WasmerRuntime>) -> 
     }
 }
 
-/// Create a new Wasmer runtime for R. Returns an external pointer to the runtime object.
+/// Create a new Wasmer runtime
+///
+/// @title Create a new Wasmer runtime
+/// @description Create a new Wasmer runtime for executing WebAssembly modules.
+/// @family runtime management
+/// @seealso [wasmer_runtime_new_with_compiler_ext()], [wasmer_runtime_release_ressources()]
 /// @return External pointer to WasmerRuntime
+/// @examples
+/// ptr <- wasmer_runtime_new()
 /// @export
 #[extendr]
 pub fn wasmer_runtime_new() -> ExternalPtr<WasmerRuntime> {
     ExternalPtr::new(WasmerRuntime::new())
 }
 
-/// Create a new Wasmer runtime with a specific compiler.
-/// @param compiler_name Name of the compiler ("cranelift", "singlepass")
+/// Create a new Wasmer runtime with a specific compiler
+///
+/// @title Create a new Wasmer runtime with a specific compiler
+/// @description Create a new Wasmer runtime for executing WebAssembly modules using a specified compiler backend.
+/// @family runtime management
+/// @seealso [wasmer_runtime_new()], [wasmer_runtime_release_ressources()]
+/// @param compiler_name Name of the compiler ("cranelift", "singlepass").
 /// @return External pointer to WasmerRuntime
+/// @examples
+/// ptr <- wasmer_runtime_new_with_compiler_ext("cranelift")
 /// @export
 #[extendr]
 pub fn wasmer_runtime_new_with_compiler_ext(compiler_name: String) -> ExternalPtr<WasmerRuntime> {
@@ -670,11 +724,18 @@ pub fn wasmer_runtime_new_with_compiler_ext(compiler_name: String) -> ExternalPt
     ExternalPtr::new(runtime)
 }
 
-/// Create a WASI or WASIX state for the runtime.
-/// @param ptr External pointer to WasmerRuntime
-/// @param module_name Name of the module (for WASI/WASIX args)
-/// @param env_type Environment type: "wasi" (default) or "wasix"
+/// Create a WASI or WASIX state for the runtime
+///
+/// @title Create WASI/WASIX state
+/// @description Create a WASI or WASIX state for the runtime.
+/// @family module instantiation
+/// @seealso [wasmer_instantiate_ext()], [wasmer_instantiate_with_math_imports_ext()], [wasmer_instantiate_with_table_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param module_name Name of the module (for WASI/WASIX args).
+/// @param env_type Environment type: "wasi" (default) or "wasix".
 /// @return TRUE if successful, FALSE otherwise
+/// @examples
+/// wasmer_wasi_state_new_ext(ptr, "mod1", "wasi")
 /// @export
 #[extendr]
 pub fn wasmer_wasi_state_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: String, env_type: Option<String>) -> bool {
@@ -710,11 +771,18 @@ pub fn wasmer_wasi_state_new_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_nam
 }
 
 
-/// Compile a WAT (WebAssembly Text) module and add it to the runtime.
-/// @param ptr External pointer to WasmerRuntime
-/// @param wat_code WAT code as a string
-/// @param module_name Name to register the module under
+/// Compile a WAT (WebAssembly Text) module and add it to the runtime
+///
+/// @title Compile WAT module
+/// @description Compile a WebAssembly Text (WAT) module and add it to the runtime.
+/// @family module compilation
+/// @seealso [wasmer_compile_wasm_ext()], [wasmer_wat_to_wasm_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param wat_code WAT code as a string.
+/// @param module_name Name to register the module under.
 /// @return Status message
+/// @examples
+/// wasmer_compile_wat_ext(ptr, wat_code, "mod1")
 /// @export
 #[extendr]
 pub fn wasmer_compile_wat_ext(mut ptr: ExternalPtr<WasmerRuntime>, wat_code: String, module_name: String) -> String {
@@ -722,11 +790,18 @@ pub fn wasmer_compile_wat_ext(mut ptr: ExternalPtr<WasmerRuntime>, wat_code: Str
     wasmer_compile_wat(runtime, wat_code, module_name)
 }
 
-/// Compile a WASM binary and add it to the runtime.
-/// @param ptr External pointer to WasmerRuntime
-/// @param wasm_bytes WASM binary as R raw vector
-/// @param module_name Name to register the module under
+/// Compile a WASM binary and add it to the runtime
+///
+/// @title Compile WASM binary
+/// @description Compile a WebAssembly binary and add it to the runtime.
+/// @family module compilation
+/// @seealso [wasmer_compile_wat_ext()], [wasmer_wat_to_wasm_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param wasm_bytes WASM binary as R raw vector.
+/// @param module_name Name to register the module under.
 /// @return Status message
+/// @examples
+/// wasmer_compile_wasm_ext(ptr, wasm_bytes, "mod1")
 /// @export
 #[extendr]
 pub fn wasmer_compile_wasm_ext(mut ptr: ExternalPtr<WasmerRuntime>, wasm_bytes: Robj, module_name: String) -> String {
@@ -756,12 +831,19 @@ pub fn wasmer_instantiate_ext(mut ptr: ExternalPtr<WasmerRuntime>, module_name: 
     wasmer_instantiate(runtime, module_name, instance_name)
 }
 
-/// Call an exported function from a WASM instance.
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
-/// @param function_name Name of the function to call
-/// @param args Arguments as R list
+/// Call an exported function from a WASM instance
+///
+/// @title Call WASM function
+/// @description Call an exported function from a WASM instance.
+/// @family function calling
+/// @seealso [wasmer_call_function_safe_ext()], [wasmer_host_function_example_ext()], [wasmer_math_example_ext()], [wasmer_hello_world_example_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
+/// @param function_name Name of the function to call.
+/// @param args Arguments as R list.
 /// @return List with success flag and result or error
+/// @examples
+/// wasmer_call_function_ext(ptr, "inst1", "add", list(1, 2))
 /// @export
 #[extendr]
 pub fn wasmer_call_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String, function_name: String, args: List) -> List {
@@ -769,10 +851,17 @@ pub fn wasmer_call_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_na
     wasmer_call_function(runtime, instance_name, function_name, args)
 }
 
-/// List all exports from a WASM instance.
-/// @param ptr External pointer to WasmerRuntime
-/// @param instance_name Name of the instance
+/// List all exports from a WASM instance
+///
+/// @title List WASM exports
+/// @description List all exports from a WASM instance.
+/// @family exports and signatures
+/// @seealso [wasmer_list_function_signatures_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param instance_name Name of the instance.
 /// @return List with success flag and exports or error
+/// @examples
+/// wasmer_list_exports_ext(ptr, "inst1")
 /// @export
 #[extendr]
 pub fn wasmer_list_exports_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name: String) -> List {
@@ -795,8 +884,15 @@ pub fn wasmer_register_r_function_ext(mut ptr: ExternalPtr<WasmerRuntime>, name:
 }
 
 /// Convert WAT (WebAssembly Text) to WASM binary and return as R raw vector
-/// @param wat_code WAT code as a string
+///
+/// @title Convert WAT to WASM
+/// @description Convert WebAssembly Text (WAT) to WASM binary and return as R raw vector.
+/// @family module compilation
+/// @seealso [wasmer_compile_wat_ext()], [wasmer_compile_wasm_ext()]
+/// @param wat_code WAT code as a string.
 /// @return WASM binary as R raw vector, or error string if conversion fails
+/// @examples
+/// wasmer_wat_to_wasm_ext(wat_code)
 /// @export
 #[extendr]
 pub fn wasmer_wat_to_wasm_ext(wat_code: String) -> Robj {
@@ -949,12 +1045,19 @@ pub fn wasmer_memory_grow_ext(mut ptr: ExternalPtr<WasmerRuntime>, instance_name
     }
 }
 
-/// Instantiate a compiled module in the runtime, with a custom table import.
-/// @param ptr External pointer to WasmerRuntime
-/// @param module_name Name of the module to instantiate
-/// @param instance_name Name to register the instance under
-/// @param table_ptr External pointer to Table to import as "env.host_table"
+/// Instantiate a compiled module in the runtime, with a custom table import
+///
+/// @title Instantiate WASM module with table import
+/// @description Instantiate a compiled WASM module in the runtime, with a custom table import.
+/// @family module instantiation
+/// @seealso [wasmer_instantiate_ext()], [wasmer_instantiate_with_math_imports_ext()], [wasmer_wasi_state_new_ext()]
+/// @param ptr External pointer to WasmerRuntime.
+/// @param module_name Name of the module to instantiate.
+/// @param instance_name Name to register the instance under.
+/// @param table_ptr External pointer to Table to import as "env.host_table".
 /// @return Status message
+/// @examples
+/// wasmer_instantiate_with_table_ext(ptr, "mod1", "inst1", table_ptr)
 /// @export
 #[extendr]
 pub fn wasmer_instantiate_with_table_ext(
@@ -1134,33 +1237,6 @@ pub fn wasmer_function_new_ext(
             }
         }
     );
-    ExternalPtr::new(fun)
-}
-
-/// Create a Wasmer host function from an R function with static signature (i32, i32) -> i32
-/// This is required for WASM tables and funcref use.
-/// @param ptr External pointer to WasmerRuntime
-/// @param rfun R function object
-/// @param _name Character string for registry name
-/// @return External pointer to Function
-/// @export
-#[extendr]
-pub fn wasmer_function_new_static_ext(
-    mut ptr: ExternalPtr<WasmerRuntime>,
-    rfun: Robj,
-    _name: String
-) -> ExternalPtr<Function> {
-    let runtime = ptr.as_mut();
-    let id = register_r_function_internal(rfun);
-    // Only supports (i32, i32) -> i32 for now
-    let fun = Function::new_typed(&mut runtime.store, move |x: i32, y: i32| -> i32 {
-        let result = R_FUNCTION_REGISTRY.with(|reg| {
-            reg.borrow().get(&id).cloned()
-        }).and_then(|rfun| {
-            rfun.call(pairlist!(r!(x), r!(y))).ok()
-        });
-        result.and_then(|r| r.as_integer()).unwrap_or(0)
-    });
     ExternalPtr::new(fun)
 }
 
@@ -1373,7 +1449,6 @@ extendr_module! {
     fn wasmer_table_grow_ext;
     fn wasmer_table_get_ext;
     fn wasmer_function_new_ext;
-    fn wasmer_function_new_static_ext;
     fn wasmer_get_exported_table_ext;
     fn wasmer_function_new_i32_to_i32;
     fn wasmer_function_new_i32_i32_to_i32;

@@ -2,7 +2,7 @@
 % Please edit documentation in R/extendr-wrappers.R
 \name{wasmer_runtime_new}
 \alias{wasmer_runtime_new}
-\title{Create a new Wasmer runtime for R. Returns an external pointer to the runtime object.}
+\title{Create a new Wasmer runtime}
 \usage{
 wasmer_runtime_new()
 }
@@ -10,5 +10,19 @@ wasmer_runtime_new()
 External pointer to WasmerRuntime
 }
 \description{
-Create a new Wasmer runtime for R. Returns an external pointer to the runtime object.
+Create a new Wasmer runtime for executing WebAssembly modules.
 }
+\details{
+Create a new Wasmer runtime
+}
+\examples{
+ptr <- wasmer_runtime_new()
+}
+\seealso{
+\code{\link[=wasmer_runtime_new_with_compiler_ext]{wasmer_runtime_new_with_compiler_ext()}}, \code{\link[=wasmer_runtime_release_ressources]{wasmer_runtime_release_ressources()}}
+
+Other runtime management: 
+\code{\link{wasmer_runtime_new_with_compiler_ext}()},
+\code{\link{wasmer_runtime_release_ressources}()}
+}
+\concept{runtime management}
